@@ -1,6 +1,7 @@
+dt = 1/60
 t=0
 x_map=52
-y_map=-8
+y_map=16
 
 x2=0
 y2=0
@@ -10,11 +11,23 @@ TILE_WIDTH_HALF = 8
 TILE_HEIGHT_HALF = 4
 
 map={
-	{0,0,0,0,0,0,1,0},
-	{0,0,0,1,1,0,1,0},
-	{0,0,0,1,1,0,1,0},
-	{0,0,0,1,1,0,0,0},
-	{0,0,0,0,1,1,1,0},
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	{0,0,1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0},
+	{0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0},
+	{0,0,1,1,0,1,0,0,1,1,0,1,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	{1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0},
+	{0,0,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0},
+	{0,0,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0},
+	{0,0,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0},
+	{0,0,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0},
+	{0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	{0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	{0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+
 }
 Sprites = {}
 hero = {}
@@ -22,6 +35,8 @@ helping_box={
 	row=0,
 	col=0
 }
+path_already_loaded = false
+path_already_loaded_counter = 0
 path_tile={}
 path_tile_reverse={}
 
@@ -39,6 +54,33 @@ function creerSprite(index,col,row,pAlpha,xOffset,yOffset,tag)
 sprite.i = index
 sprite.row = row
 sprite.col = col
+sprite.pathTrackObject = {}
+sprite.pathFindingIsOn = false
+sprite.moveVitesse = 2
+sprite.moveVitesseCounter = 0
+sprite.followPath = function()
+
+
+	if(sprite.pathFindingIsOn == true) then
+		trace("on!")
+		sprite.moveVitesseCounter = sprite.moveVitesseCounter + dt
+		trace(#sprite.pathTrackObject)
+		if(sprite.moveVitesseCounter >= 1/4)then
+			table.remove(sprite.pathTrackObject,#sprite.pathTrackObject)
+			local a = sprite.pathTrackObject[#sprite.pathTrackObject]
+			sprite.col = a.col
+			sprite.row = a.row
+			sprite.moveVitesseCounter = 0
+			if(#sprite.pathTrackObject == 1) then
+			     sprite.pathFindingIsOn = false
+			     path_tile_reverse = {}
+			     path_tile = {}
+			end
+		end
+
+	end
+
+end
 
 if pAlpha == nil then
    sprite.pAlpha = 0
@@ -65,15 +107,14 @@ hero = sprite
 return sprite
 end
 
-function AStarPathfinding(point)
+function AStarPathfinding(point, sprite)
 
 	point.x = point.x +1
 	point.y = point.y +1
 
-
+	sprite.pathFindingIsOn = false
 	path_tile = {}
 	path_tile_reverse = {}
-
 
 	-- check for error field
 	if(map[point.y]== nil )then
@@ -85,8 +126,8 @@ function AStarPathfinding(point)
             end
 
 	start_square = {
-		col = hero.col,
-		row = hero.row,
+		col = sprite.col,
+		row = sprite.row,
 		score_F = 0,
 		score_H = 0,
 		score_G = 0,
@@ -111,7 +152,11 @@ function AStarPathfinding(point)
 		-- trace("current_square.col : "..current_square.row)
 		-- Securite au cas ou la boucle est infinie :o
 		term_secur = term_secur -1
-		if(term_secur <= 0) then term_secur = 0 break end
+		if(term_secur <= 0) then
+			 term_secur = 0
+			 sprite.pathFindingIsOn = false
+			  break
+		  end
 
 		-- ------------------------------------------------
 		-- [algorithm a*]
@@ -173,23 +218,13 @@ function AStarPathfinding(point)
 		if(square_bottom.isInOpenList ~= true and square_bottom.isInClosedList ~= true and square_bottom.isInNonWalkableTile ~= true)then table.insert(openList,square_bottom) end
 
 
-	          -- trace("---------------------------")
-	          --
-	          -- trace("TRACE SCORE F !!")
-	          -- trace(" ")
-	          -- trace( "calc_square_right score F = " .. tostring(square_right.score_F) )
-	          -- trace("calc_square_bottom score F = " .. tostring(square_bottom.score_F) )
-	          -- trace("calc_square_left score F = " .. tostring(square_left.score_F) )
-	          -- trace("calc_square_top score F = " .. tostring(square_top.score_F) )
-	          --test
-	          local mr_temp_test = {0,1,2,3,4,5}
+
+	          --Recherche de la valeur la plus basse de F dans la liste ouverte
 	          local temp_min = openList[1].score_F
 	          	          for i = 1,#openList do
 			          local val1 =openList[i].score_F
 			           for j = 1,#openList do
 				          local val2 = openList[j].score_F
-				          trace("scoreF(1) : "..val1)
-          				          trace("scoreF(2) : "..val2)
 		 		          if(val2 <= val1) then
 					   if(temp_min >= val1) then
 		 			       temp_min = val2
@@ -198,29 +233,15 @@ function AStarPathfinding(point)
 			           end
 
 		          end
-	          trace("temp_min : "..temp_min)
-	          --/test
-	          local LowestValue = math.min(square_right.score_F,square_bottom.score_F,square_left.score_F,square_top.score_F)
+
+
 
 	          for i = #openList,1,-1 do
 		    local cSquare = openList[i]
 		    if(temp_min == cSquare.score_F)  then
-			    trace(" ")
-
-		                -- trace("The lowest score of F is " .. tostring(cSquare.score_F) )
-			    if(cSquare.dir == 1) then
-			    trace("move to the right")
-			    elseif(cSquare.dir == 2) then
-			    trace("move to the left")
-			    elseif(cSquare.dir == 3) then
-			    trace("move to the top")
-			    elseif(cSquare.dir == 4) then
-			    trace("move to the bottom")
-			    end
 			    table.insert(closedList,cSquare)
 			    table.insert(path_tile,cSquare)
 			    current_square = cSquare
-			    -- table.remove(openList,cSquare)
 			    for i,v in ipairs(openList) do
 				 if(cSquare.col == v.col and
 			 	    cSquare.row == v.row) then
@@ -238,19 +259,19 @@ function AStarPathfinding(point)
 		-- [/algorithm a*]
 		if((current_square.col == point.x) and (current_square.row == point.y) ) then
             		stopBoucle = false
-		          trackPath(current_square)
+		          trackPath(current_square, sprite.pathTrackObject)
+	          	          sprite.pathFindingIsOn = true
 	            end
 	end
 
 end
 
-function trackPath(pSquare)
+function trackPath(pSquare, pathTrackObject)
 	local bool = true
 	local subSquare = pSquare
-	local path = {}
-	local iter_secur = 30
+	local iter_secur = 50
 	table.insert(path_tile_reverse,pSquare)
-	table.insert(path,pSquare)
+	table.insert(pathTrackObject,pSquare)
 	while( bool) do
 		iter_secur = iter_secur -1
 		if(iter_secur <= 0) then break end
@@ -259,7 +280,7 @@ function trackPath(pSquare)
 		return path
 		else
 		table.insert(path_tile_reverse,subSquare)
-		table.insert(path,subSquare)
+		table.insert(pathTrackObject,subSquare)
 		subSquare = parent
 	 	end
 
@@ -320,19 +341,37 @@ end
 
 init()
 function TIC()
+	local test = mapToScreen(hero.row,hero.col)
+	x_map =52 +(hero.col * -4 - hero.row * -4)
+	y_map = 16 +(hero.row * -4 + hero.col * -4)
 	mx,my,md = mouse()
 	x2=mx
 	y2=my
 	local point = screenToMap(mx, my)
-	if md == true then
+	if (md == true and path_already_loaded == false) then
+		path_already_loaded = true
 		-- trace("x_click: "..x_click)
 		-- trace("y_click: "..y_click)
 		-- trace("x2: "..point.x)
 		-- trace("y2: "..point.y)
 		helping_box.col = point.x
 		helping_box.row = point.y
-		AStarPathfinding( point );
+		-- define the pathFinding for the player
+		hero.pathTrackObject = {}
+		AStarPathfinding( point ,hero);
+		-- set the movment into motion for the player
+
 	end
+
+	if (path_already_loaded == true) then
+		path_already_loaded_counter = path_already_loaded_counter + 1
+		if path_already_loaded_counter == 20 then
+			path_already_loaded_counter = 0
+			path_already_loaded = false
+		end
+	end
+
+	hero.followPath()
 	poke(0x3FFB,8)
 	local x=Sprites[1].col
 	local y =Sprites[1].row
@@ -360,7 +399,7 @@ function TIC()
 	Sprites[1].row = y
 	cls(2)
 	draw()
-	t=t+1
+	t=t+dt
 
 
 
