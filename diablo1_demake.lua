@@ -9,7 +9,7 @@ y2=0
 SCALE = 2
 TILE_WIDTH_HALF = 8
 TILE_HEIGHT_HALF = 4
-
+camera = {x=0,y=0}
 map={
 	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 	{0,0,1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0},
@@ -51,30 +51,69 @@ function creerSprite(index,col,row,pAlpha,xOffset,yOffset,tag)
 -- [@yOffset]     Position de decalage y
 -- [@tag]         tag du sprite
  local sprite = {}
+
 sprite.i = index
 sprite.row = row
 sprite.col = col
+sprite.x = (8*col-8*row) * SCALE
+sprite.y = (4*col+4*row) * SCALE
 sprite.pathTrackObject = {}
 sprite.pathFindingIsOn = false
 sprite.moveVitesse = 2
 sprite.moveVitesseCounter = 0
+sprite.pointSquareDestination = {}
+sprite.distanceSquareDestination = {x=0,y=0}
+sprite.pointDistanceStep = {x=0,y=0}
 sprite.followPath = function()
 
 
 	if(sprite.pathFindingIsOn == true) then
-		trace("on!")
 		sprite.moveVitesseCounter = sprite.moveVitesseCounter + dt
-		trace(#sprite.pathTrackObject)
+		if(#sprite.pathTrackObject <=2) then
+		sprite.pointDistanceStep.x = 0
+		sprite.pointDistanceStep.y = 0
+		end
+		if(sprite.pointSquareDestination ~= nil and
+		   #sprite.pathTrackObject > 1) then
+			   -- trace("lenght object : ".. #sprite.pathTrackObject)
+			if(sprite.pathTrackObject[#sprite.pathTrackObject - 1].col ~=  sprite.pointSquareDestination.col or
+		 	   sprite.pathTrackObject[#sprite.pathTrackObject - 1].row ~=  sprite.pointSquareDestination.row) then
+				   sprite.pointSquareDestination = sprite.pathTrackObject[#sprite.pathTrackObject - 1]
+				   local point_dest = {
+				  x = (8*sprite.pointSquareDestination.col-8*sprite.pointSquareDestination.row),
+				  y = (4*sprite.pointSquareDestination.col+4*sprite.pointSquareDestination.row)
+			  	  }--mapToScreen(sprite.pointSquareDestination.row ,sprite.pointSquareDestination.col)
+				   -- trace("x_dest: "..point_dest.x)
+				   -- trace("y_dest: "..point_dest.y)
+				   -- trace("x_sprite: "..sprite.x)
+				   -- trace("y_sprite: "..sprite.y)
+				   -- trace("col_dest: "..sprite.pointSquareDestination.col)
+				   -- trace("row_dest: "..sprite.pointSquareDestination.row)
+				   -- trace("col_sprite: "..sprite.col)
+				   -- trace("row_sprite: "..sprite.row)
+				   sprite.pointDistanceStep=calculDistance({x=sprite.x,y=sprite.y} ,point_dest)
+
+					   sprite.pointDistanceStep.x = sprite.pointDistanceStep.x *( dt * 4)
+					   sprite.pointDistanceStep.y = sprite.pointDistanceStep.y *( dt * 4)
+
+
+
+
+			   end
+		end
+
 		if(sprite.moveVitesseCounter >= 1/4)then
 			table.remove(sprite.pathTrackObject,#sprite.pathTrackObject)
 			local a = sprite.pathTrackObject[#sprite.pathTrackObject]
 			sprite.col = a.col
 			sprite.row = a.row
 			sprite.moveVitesseCounter = 0
+			sprite.distanceSquareDestination = {x=0,y=0}
 			if(#sprite.pathTrackObject == 1) then
 			     sprite.pathFindingIsOn = false
 			     path_tile_reverse = {}
 			     path_tile = {}
+			     sprite.pointDistanceStep = {x=0,y=0}
 			end
 		end
 
@@ -106,6 +145,15 @@ table.insert(Sprites,sprite)
 hero = sprite
 return sprite
 end
+
+
+function calculDistance(depart ,destination)
+local a = {}
+a.x =  destination.x - depart.x
+a.y =  destination.y - depart.y
+return a;
+end
+
 
 function AStarPathfinding(point, sprite)
 
@@ -341,19 +389,15 @@ end
 
 init()
 function TIC()
-	local test = mapToScreen(hero.row,hero.col)
-	x_map =52 +(hero.col * -4 - hero.row * -4)
-	y_map = 16 +(hero.row * -4 + hero.col * -4)
+	-- local test = mapToScreen(hero.row,hero.col)
+	x_map =52 -hero.x
+	y_map = 16 -hero.y
 	mx,my,md = mouse()
 	x2=mx
 	y2=my
 	local point = screenToMap(mx, my)
 	if (md == true and path_already_loaded == false) then
 		path_already_loaded = true
-		-- trace("x_click: "..x_click)
-		-- trace("y_click: "..y_click)
-		-- trace("x2: "..point.x)
-		-- trace("y2: "..point.y)
 		helping_box.col = point.x
 		helping_box.row = point.y
 		-- define the pathFinding for the player
@@ -375,26 +419,26 @@ function TIC()
 	poke(0x3FFB,8)
 	local x=Sprites[1].col
 	local y =Sprites[1].row
-	if btnp(0) then
-		if y-1 >= 1 then
-	            y=y-1
-	 	end
-	 end
-	if btnp(1) then
-		if y+1 <= #map then
-		y=y+1
-	 	end
-	 end
-	if btnp(2) then
-		if x-1 >= 1 then
-		x=x-1
-		end
-	end
-	if btnp(3) then
-		if x+1 <=#map[y] then
-		x=x+1
-		end
-	end
+	-- if btnp(0) then
+	-- 	if y-1 >= 1 then
+	--             y=y-1
+	--  	end
+	--  end
+	-- if btnp(1) then
+	-- 	if y+1 <= #map then
+	-- 	y=y+1
+	--  	end
+	--  end
+	-- if btnp(2) then
+	-- 	if x-1 >= 1 then
+	-- 	x=x-1
+	-- 	end
+	-- end
+	-- if btnp(3) then
+	-- 	if x+1 <=#map[y] then
+	-- 	x=x+1
+	-- 	end
+	-- end
 	Sprites[1].col = x
 	Sprites[1].row = y
 	cls(2)
@@ -441,8 +485,15 @@ function drawSprite()
 		local col = sprite.col
 		local x_offset= sprite.x_offset
 		local y_offset = sprite.y_offset
+		sprite.distanceSquareDestination.x = sprite.distanceSquareDestination.x + sprite.pointDistanceStep.x
+		sprite.distanceSquareDestination.y = sprite.distanceSquareDestination.y + sprite.pointDistanceStep.y
+		sprite.x = (8*col-8*row) + sprite.distanceSquareDestination.x
+		sprite.y = (4*col+4*row) + sprite.distanceSquareDestination.y
+
 		local pAlpha = sprite.pAlpha
-		spr(i, (x_map+8*col-8*row )* SCALE + x_offset,(y_map+4*col+4*row) * SCALE + y_offset,pAlpha,SCALE)
+		spr(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha,SCALE)
+		-- spr(i, (x_map+8*col-8*row )* SCALE + x_offset,(y_map+4*col+4*row) * SCALE + y_offset,pAlpha,SCALE)
+
 	end
 
 end
