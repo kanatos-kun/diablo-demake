@@ -39,9 +39,39 @@ path_already_loaded = false
 path_already_loaded_counter = 0
 path_tile={}
 path_tile_reverse={}
+character ={
+	--[1]
+	-- human with white shirt
+	{
+		color ={
+			skin = 12,
+			shirt = 15,
+			pant = 6
+		}
+	},
+	--[2]
+	-- demon
+	{
+		color ={
+			skin = 6,
+			shirt = 6,
+			pant = 6
+		}
+	},
+	--[3]
+	-- goblin
+	{
+		color ={
+			skin = 5,
+			shirt = 5,
+			pant = 4
+		}
+	},
+
+}
 
 
-function creerSprite(index,col,row,pAlpha,xOffset,yOffset,tag)
+function creerSprite(index,col,row,pAlpha,xOffset,yOffset,tag,pColor)
 
 -- @i             index du sprite utilise
 -- @row           position x du sprite(en ligne)
@@ -50,6 +80,8 @@ function creerSprite(index,col,row,pAlpha,xOffset,yOffset,tag)
 -- [@xOffset]     Position de decalage x
 -- [@yOffset]     Position de decalage y
 -- [@tag]         tag du sprite
+-- [@pColor]       color custom du sprite
+
  local sprite = {}
 
 sprite.i = index
@@ -64,6 +96,15 @@ sprite.moveVitesseCounter = 0
 sprite.pointSquareDestination = {}
 sprite.distanceSquareDestination = {x=0,y=0}
 sprite.pointDistanceStep = {x=0,y=0}
+
+if(pColor ~= nil) then
+sprite.color = {
+	skin = pColor.skin,
+	shirt = pColor.shirt,
+	pant = pColor.pant
+}
+end
+
 sprite.followPath = function()
 
 
@@ -208,13 +249,24 @@ function AStarPathfinding(point, sprite)
 
 		-- ------------------------------------------------
 		-- [algorithm a*]
-
-
+		-- [direction]
+		--  1 : droite
+		--  2 : gauche
+		--  3 : haut
+		--  4 : bas
+		--  5 : droite-bas
+		--  6 : gauche-bas
+		--  7 : droite-haut
+		--  8 : gauche-haut
+		-- [/direction]
 		local square_right = addSquareForAStarPathfinding(current_square,point,1)
 		local square_left = addSquareForAStarPathfinding(current_square,point,2)
 		local square_top = addSquareForAStarPathfinding(current_square,point,3)
 		local square_bottom = addSquareForAStarPathfinding(current_square,point,4)
-
+		local square_right_bottom = addSquareForAStarPathfinding(current_square,point,5)
+		local square_left_bottom = addSquareForAStarPathfinding(current_square,point,6)
+		local square_right_top = addSquareForAStarPathfinding(current_square,point,7)
+		local square_left_top = addSquareForAStarPathfinding(current_square,point,8)
 
 		-- Recherche si un noeud courant est dejà dans la liste ouverte
 		for i,v in ipairs(openList) do
@@ -230,10 +282,22 @@ function AStarPathfinding(point, sprite)
 			elseif   (v.row == square_top.row and v.col == square_top.col) then
 				square_top.isInOpenList = true
 				--Deja dans la liste ouverte
+			elseif   (v.row == square_right_bottom.row and v.col == square_right_bottom.col) then
+				square_right_bottom.isInOpenList = true
+				--Deja dans la liste ouverte
+			elseif   (v.row == square_left_bottom.row and v.col == square_left_bottom.col) then
+				square_left_bottom.isInOpenList = true
+				--Deja dans la liste ouverte
+			elseif   (v.row == square_right_top.row and v.col == square_right_top.col) then
+				square_right_top.isInOpenList = true
+				--Deja dans la liste ouverte
+			elseif   (v.row == square_left_top.row and v.col == square_left_top.col) then
+				square_left_top.isInOpenList = true
+				--Deja dans la liste ouverte
 			end
 		end
 
-		-- Recherche si un noeud courant est dejà dans la liste ouverte
+		-- Recherche si un noeud courant est dejà dans la liste fermee
 		for i,v in ipairs(closedList) do
 			if       (v.row == square_right.row and v.col == square_right.col) then
 				square_right.isInClosedList = true
@@ -246,6 +310,18 @@ function AStarPathfinding(point, sprite)
 			            --Deja dans la liste ouverte
 			elseif   (v.row == square_top.row and v.col == square_top.col) then
 				square_top.isInClosedList = true
+				--Deja dans la liste ouverte
+			elseif   (v.row == square_right_bottom.row and v.col == square_right_bottom.col) then
+				square_right_bottom.isInClosedList = true
+				--Deja dans la liste ouverte
+			elseif   (v.row == square_left_bottom.row and v.col == square_left_bottom.col) then
+				square_left_bottom.isInClosedList = true
+				--Deja dans la liste ouverte
+			elseif   (v.row == square_right_top.row and v.col == square_right_top.col) then
+				square_right_top.isInClosedList = true
+				--Deja dans la liste ouverte
+			elseif   (v.row == square_left_top.row and v.col == square_left_top.col) then
+				square_left_top.isInClosedList = true
 				--Deja dans la liste ouverte
 			end
 		end
@@ -264,7 +340,14 @@ function AStarPathfinding(point, sprite)
 		if(square_left.isInOpenList ~= true and square_left.isInClosedList ~= true and square_left.isInNonWalkableTile ~= true)then table.insert(openList,square_left) end
 		if(square_top.isInOpenList ~= true and square_top.isInClosedList ~= true and square_top.isInNonWalkableTile ~= true)then table.insert(openList,square_top) end
 		if(square_bottom.isInOpenList ~= true and square_bottom.isInClosedList ~= true and square_bottom.isInNonWalkableTile ~= true)then table.insert(openList,square_bottom) end
-
+		if(square_right_bottom.isInOpenList ~= true and square_right_bottom.isInClosedList ~= true and square_right_bottom.isInNonWalkableTile ~= true) then table.insert(openList,square_right_bottom)
+		end
+		if(square_left_bottom.isInOpenList ~= true and square_left_bottom.isInClosedList ~= true and square_left_bottom.isInNonWalkableTile ~= true) then table.insert(openList,square_left_bottom)
+		end
+		if(square_right_top.isInOpenList ~= true and square_right_top.isInClosedList ~= true and square_right_top.isInNonWalkableTile ~= true) then table.insert(openList,square_right_top)
+		end
+		if(square_left_top.isInOpenList ~= true and square_left_top.isInClosedList ~= true and square_left_top.isInNonWalkableTile ~= true) then table.insert(openList,square_left_top)
+		end
 
 
 	          --Recherche de la valeur la plus basse de F dans la liste ouverte
@@ -353,11 +436,29 @@ function addSquareForAStarPathfinding(pSquare,point,dir)
 	elseif(dir == 4) then
 	square.col=pSquare.col
 	square.row=pSquare.row + 1
+	elseif(dir == 5) then
+	square.col=pSquare.col +1
+	square.row=pSquare.row + 1
+	elseif(dir == 6) then
+	square.col=pSquare.col +1
+	square.row=pSquare.row - 1
+	elseif(dir == 7) then
+	square.col=pSquare.col -1
+	square.row=pSquare.row + 1
+	elseif(dir == 8) then
+	square.col=pSquare.col -1
+	square.row=pSquare.row -1
 	end
 	square.score_G=pSquare.score_G + 1
-	square.score_H=math.max(square.col,point.x) - math.min(square.col,point.x)  +
-		   math.max(square.row,point.y) - math.min(square.row,point.y)
-	square.score_F=square.score_G + square.score_H
+	local dx = math.max(square.col,point.x) - math.min(square.col,point.x)
+	local dy = math.max(square.row,point.y) - math.min(square.row,point.y)
+	square.score_H= dx  + dy
+            square.score_Di = 1
+	if(dir > 4) then
+		--diagonal
+	square.score_Di = 2.7
+	end
+	square.score_F= (square.score_G * square.score_H) + (square.score_Di - 2 * square.score_G) * (math.min(dx,dy) )
 	square.dir=dir
 	square.parent = pSquare
 	square.isInOpenList = false
@@ -382,7 +483,7 @@ function addSquareForAStarPathfinding(pSquare,point,dir)
 end
 
 function init()
-	hero =creerSprite(12,1,1,11,nil,nil)
+	hero =creerSprite(12,1,1,11,nil,nil,"hero",character[2].color)
 	hero.tag = "hero"
 end
 
@@ -472,9 +573,8 @@ function draw()
 	for i,v in ipairs(path_tile_reverse) do
 	     setTile(4,v.row,v.col,0)
 	end
-
-	drawSprite()
 	draw_helping_box()
+	drawSprite()
 end
 
 function drawSprite()
@@ -491,7 +591,19 @@ function drawSprite()
 		sprite.y = (4*col+4*row) + sprite.distanceSquareDestination.y
 
 		local pAlpha = sprite.pAlpha
+		if(sprite.color ~= nil) then
+			switchPal(12,sprite.color.skin)
+			switchPal(4,sprite.color.shirt)
+			switchPal(6,sprite.color.pant)
+
+		end
 		spr(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha,SCALE)
+		if(sprite.color ~= nil) then
+			switchPal(12,12)
+			switchPal(4,4)
+			switchPal(6,6)
+
+		end
 		-- spr(i, (x_map+8*col-8*row )* SCALE + x_offset,(y_map+4*col+4*row) * SCALE + y_offset,pAlpha,SCALE)
 
 	end
@@ -574,6 +686,10 @@ function OVR()
 			spr(angel_spr[y][x],155 + x*8,88 + y*8,5)
 		end
 	end
-
 	spr(100,x2,y2,5,SCALE);
+end
+
+function switchPal(c0,c1)
+	if(c0==nil and c1==nil)then for i=0,15 do poke4(0x3FF0*2+i,i)end
+	else poke4(0x3FF0*2+c0,c1)end
 end
