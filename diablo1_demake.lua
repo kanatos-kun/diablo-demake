@@ -1,3 +1,21 @@
+-- Help function:
+-- [*init]
+-- [*tic]
+-- [*creerSprite]
+-- [*calculDistance]
+-- [*AStarPathfinding]
+-- [*trackPath]
+-- [*addSquareForAStarPathfinding]
+-- [*draw]
+-- [*drawSprite]
+-- [*draw_helping_box]
+-- [*setTile]
+-- [*mapToScreen]
+-- [*screenToMap]
+-- [*OVR]
+-- [*switchPal]
+
+
 dt = 1/60
 t=0
 x_map=52
@@ -41,12 +59,12 @@ path_tile={}
 path_tile_reverse={}
 character ={
 	--[1]
-	-- human with white shirt
+	-- priest
 	{
 		color ={
 			skin = 12,
 			shirt = 15,
-			pant = 6
+			pant = 15
 		}
 	},
 	--[2]
@@ -62,15 +80,70 @@ character ={
 	-- goblin
 	{
 		color ={
-			skin = 5,
+			skin = 11,
+			shirt = 11,
+			pant = 4,
+			alpha = 2
+		}
+	},
+	--[4]
+	-- witch
+	{
+		color ={
+			skin = 15,
+			shirt = 1,
+			pant = 1
+		}
+	},
+	--[4]
+	-- blacksmith
+	{
+		color ={
+			skin = 12,
+			shirt = 4,
+			pant = 3
+		}
+	},
+	--[5]
+	-- drunkyard
+	{
+		color ={
+			skin = 12,
 			shirt = 5,
 			pant = 4
+		}
+	},
+	--[6]
+	-- blue man
+	{
+		color ={
+			skin = 12,
+			shirt = 2,
+			pant = 3
+		}
+	},
+	--[7]
+	-- knight
+	{
+		color ={
+			skin = 12,
+			shirt = 7,
+			pant = 3
+		}
+	},
+	--[8]
+	-- girl with yellow robe
+	{
+		color ={
+			skin = 12,
+			shirt = 14,
+			pant = 14
 		}
 	},
 
 }
 
-
+-- [*creerSprite]
 function creerSprite(index,col,row,pAlpha,xOffset,yOffset,tag,pColor)
 
 -- @i             index du sprite utilise
@@ -101,7 +174,8 @@ if(pColor ~= nil) then
 sprite.color = {
 	skin = pColor.skin,
 	shirt = pColor.shirt,
-	pant = pColor.pant
+	pant = pColor.pant,
+	alpha = pColor.alpha
 }
 end
 
@@ -159,12 +233,15 @@ sprite.followPath = function()
 		end
 
 	end
-
+sprite.animation = {
+	currentAnimation = "",
+	moveAnimation = {},
+	setMotion = function() end
+}
 end
 
 if pAlpha == nil then
    sprite.pAlpha = 0
-
 else
   sprite.pAlpha = pAlpha
 end
@@ -183,11 +260,10 @@ end
 
 
 table.insert(Sprites,sprite)
-hero = sprite
 return sprite
 end
 
-
+-- [*calculDistance]
 function calculDistance(depart ,destination)
 local a = {}
 a.x =  destination.x - depart.x
@@ -196,6 +272,7 @@ return a;
 end
 
 
+-- [*AStarPathfinding]
 function AStarPathfinding(point, sprite)
 
 	point.x = point.x +1
@@ -397,6 +474,8 @@ function AStarPathfinding(point, sprite)
 
 end
 
+
+-- [*trackPath]
 function trackPath(pSquare, pathTrackObject)
 	local bool = true
 	local subSquare = pSquare
@@ -419,6 +498,9 @@ function trackPath(pSquare, pathTrackObject)
 
 end
 
+
+
+-- [*addSquareForAStarPathfinding]
 function addSquareForAStarPathfinding(pSquare,point,dir)
 	local square = {}
 	if(dir == 0) then
@@ -482,13 +564,36 @@ function addSquareForAStarPathfinding(pSquare,point,dir)
 	return square
 end
 
+
+-- [*init]
 function init()
-	hero =creerSprite(12,1,1,11,nil,nil,"hero",character[2].color)
+	-- @i             index du sprite utilise
+	-- @row           position x du sprite(en ligne)
+	-- @col           position y du sprite(en colonne)
+	-- [@pAlpha]      Couleur alpha utilise
+	-- [@xOffset]     Position de decalage x
+	-- [@yOffset]     Position de decalage y
+	-- [@tag]         tag du sprite
+	-- [@pColor]       color custom du sprite
+	hero =creerSprite(12,1,1,nil,nil,nil,"hero")
+	creerSprite(12,2,1,nil,nil,nil,"npc",character[1].color)
+	creerSprite(12,3,1,nil,nil,nil,"npc",character[2].color)
+	creerSprite(12,4,1,nil,nil,nil,"npc",character[3].color)
+	creerSprite(12,5,1,nil,nil,nil,"npc",character[4].color)
+	creerSprite(12,6,1,nil,nil,nil,"npc",character[5].color)
+	creerSprite(12,7,1,nil,nil,nil,"npc",character[6].color)
+	creerSprite(12,8,1,nil,nil,nil,"npc",character[7].color)
+	creerSprite(12,9,1,nil,nil,nil,"npc",character[8].color)
+	creerSprite(12,10,1,nil,nil,nil,"npc",character[9].color)
+
 	hero.tag = "hero"
 end
 
 
 init()
+
+
+-- [*tic]
 function TIC()
 	-- local test = mapToScreen(hero.row,hero.col)
 	x_map =52 -hero.x
@@ -551,6 +656,7 @@ function TIC()
 end
 
 
+-- [*draw]
 function draw()
 
 	for row=1,#map do
@@ -577,6 +683,7 @@ function draw()
 	drawSprite()
 end
 
+-- [*drawSprite]
 function drawSprite()
 	for i_spr=1,#Sprites do
 		local sprite = Sprites[i_spr]
@@ -591,10 +698,15 @@ function drawSprite()
 		sprite.y = (4*col+4*row) + sprite.distanceSquareDestination.y
 
 		local pAlpha = sprite.pAlpha
+		outLineSprite(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha)
+
 		if(sprite.color ~= nil) then
 			switchPal(12,sprite.color.skin)
 			switchPal(4,sprite.color.shirt)
 			switchPal(6,sprite.color.pant)
+			if(sprite.color.alpha ~= sprite.pAlpha) then
+				switchPal(sprite.pAlpha,pAlpha)
+			end
 
 		end
 		spr(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha,SCALE)
@@ -602,6 +714,10 @@ function drawSprite()
 			switchPal(12,12)
 			switchPal(4,4)
 			switchPal(6,6)
+
+			if(sprite.color.alpha ~= sprite.pAlpha) then
+				switchPal(11,11)
+			end
 
 		end
 		-- spr(i, (x_map+8*col-8*row )* SCALE + x_offset,(y_map+4*col+4*row) * SCALE + y_offset,pAlpha,SCALE)
@@ -611,6 +727,7 @@ function drawSprite()
 end
 
 
+-- [*draw_helping_box]
 function draw_helping_box()
 	--spr(15, (x_map+8*col-8*row )* SCALE + x_offset,(y_map+4*col+4*row) * SCALE + y_offset,pAlpha,SCALE)
 	--bottom square
@@ -622,6 +739,8 @@ function draw_helping_box()
 	line(x,y+(TILE_WIDTH_HALF*SCALE),x + (TILE_WIDTH_HALF*SCALE),y + (TILE_HEIGHT_HALF*SCALE),14)
 end
 
+
+-- [*setTile]
 function setTile(pType,row,col,pAlpha)
 	-- @pType         index type tile
 	-- @row           position y de la tile(en ligne)
@@ -637,6 +756,8 @@ function setTile(pType,row,col,pAlpha)
 	*SCALE, point.y ,pAlpha,SCALE,1)
 end
 
+
+-- [*mapToScreen]
 function mapToScreen(row, col)
 	local point = { x=0,y=0}
 	point.x = (x_map + ( col - row ) * TILE_WIDTH_HALF ) * SCALE
@@ -644,6 +765,8 @@ function mapToScreen(row, col)
 	return point
 end
 
+
+-- [*screenToMap]
 function screenToMap(mx, my)
 	local point = {}
 	point.x = math.floor( ( (mx-x_map *SCALE)/(TILE_WIDTH_HALF) +(my-y_map *SCALE)/TILE_HEIGHT_HALF ) /(2*SCALE)  ) -1
@@ -651,6 +774,8 @@ function screenToMap(mx, my)
 	return point
 end
 
+
+-- [*OVR]
 function OVR()
 	rect(0,94,241,42,3)
 	line(0,93,241,93,0)
@@ -689,7 +814,25 @@ function OVR()
 	spr(100,x2,y2,5,SCALE);
 end
 
+
+-- [*switchPal]
 function switchPal(c0,c1)
 	if(c0==nil and c1==nil)then for i=0,15 do poke4(0x3FF0*2+i,i)end
 	else poke4(0x3FF0*2+c0,c1)end
+end
+
+-- [*outLineSprite]
+function outLineSprite(i,x,y,pAlpha)
+	switchPal(0,15)
+	switchPal(12,0)
+	switchPal(4,0)
+	switchPal(6,0)
+	spr(i, x +1, y, 0, SCALE)
+	spr(i, x -1, y, 0, SCALE)
+	spr(i, x , y-1, 0, SCALE)
+	switchPal(0,0)
+	switchPal(12,12)
+	switchPal(4,4)
+	switchPal(6,6)
+
 end
