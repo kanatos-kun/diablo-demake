@@ -2,6 +2,7 @@
 -- [*init]
 -- [*tic]
 -- [*creerSprite]
+-- [*creerUI]
 -- [*calculDistance]
 -- [*AStarPathfinding]
 -- [*trackPath]
@@ -27,7 +28,7 @@ y2=0
 SCALE = 2
 TILE_WIDTH_HALF = 8
 TILE_HEIGHT_HALF = 4
-camera = {x=0,y=0}
+-- camera = {x=0,y=0}
 map={
 	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 	{0,0,1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0},
@@ -48,6 +49,7 @@ map={
 
 }
 Sprites = {}
+UI = {}
 hero = {}
 helping_box={
 	row=0,
@@ -156,8 +158,10 @@ function creerSprite(index,col,row,pAlpha,xOffset,yOffset,tag,pColor)
 -- [@pColor]       color custom du sprite
 
  local sprite = {}
-
 sprite.i = index
+sprite.timeFrame = 0
+sprite.currentFrame=1
+sprite.currentAnimation = "idle"
 sprite.row = row
 sprite.col = col
 sprite.x = (8*col-8*row) * SCALE
@@ -190,22 +194,13 @@ sprite.followPath = function()
 		end
 		if(sprite.pointSquareDestination ~= nil and
 		   #sprite.pathTrackObject > 1) then
-			   -- trace("lenght object : ".. #sprite.pathTrackObject)
 			if(sprite.pathTrackObject[#sprite.pathTrackObject - 1].col ~=  sprite.pointSquareDestination.col or
 		 	   sprite.pathTrackObject[#sprite.pathTrackObject - 1].row ~=  sprite.pointSquareDestination.row) then
 				   sprite.pointSquareDestination = sprite.pathTrackObject[#sprite.pathTrackObject - 1]
 				   local point_dest = {
 				  x = (8*sprite.pointSquareDestination.col-8*sprite.pointSquareDestination.row),
 				  y = (4*sprite.pointSquareDestination.col+4*sprite.pointSquareDestination.row)
-			  	  }--mapToScreen(sprite.pointSquareDestination.row ,sprite.pointSquareDestination.col)
-				   -- trace("x_dest: "..point_dest.x)
-				   -- trace("y_dest: "..point_dest.y)
-				   -- trace("x_sprite: "..sprite.x)
-				   -- trace("y_sprite: "..sprite.y)
-				   -- trace("col_dest: "..sprite.pointSquareDestination.col)
-				   -- trace("row_dest: "..sprite.pointSquareDestination.row)
-				   -- trace("col_sprite: "..sprite.col)
-				   -- trace("row_sprite: "..sprite.row)
+			  	  }
 				   sprite.pointDistanceStep=calculDistance({x=sprite.x,y=sprite.y} ,point_dest)
 
 					   sprite.pointDistanceStep.x = sprite.pointDistanceStep.x *( dt * 4)
@@ -231,15 +226,34 @@ sprite.followPath = function()
 			     sprite.pointDistanceStep = {x=0,y=0}
 			end
 		end
-
+	else
+		sprite.currentAnimation = "idle"
 	end
-sprite.animation = {
-	currentAnimation = "",
-	moveAnimation = {},
-	setMotion = function() end
-}
 end
+sprite.animation = {
 
+	moveAnimation = {
+		idle={12},
+		move={13,14}
+	},
+	setMotion = function()
+		local a = sprite.animation.moveAnimation[sprite.currentAnimation]
+		sprite.timeFrame = sprite.timeFrame + dt
+
+		if(sprite.timeFrame >= 0.35) then
+			if((sprite.currentFrame+1) <= #a  ) then
+				sprite.currentFrame = sprite.currentFrame +1
+				sprite.i = a[sprite.currentFrame]
+				sprite.timeFrame = 0
+			else
+				sprite.timeFrame = 0
+				sprite.currentFrame = 1
+				sprite.i = a[sprite.currentFrame]
+			end
+		end
+	end
+}
+sprite.direction = "right"
 if pAlpha == nil then
    sprite.pAlpha = 0
 else
@@ -258,9 +272,29 @@ else
   sprite.y_offset = yOffset
 end
 
-
 table.insert(Sprites,sprite)
 return sprite
+end
+
+
+-- [*creerUI]
+function creerUI(x,y,width,height,color,text)
+-- @x           position x du rectangle
+-- @y           position y du rectangle
+-- @width       largeur du rectangle
+-- @height      hauteur du rectangle
+-- @color       couleur du rectangle
+
+
+local ui = {}
+ui.x = x
+ui.y = y
+ui.width = width
+ui.height = height
+ui.color = color
+ui.text = text
+table.insert(UI,ui)
+return ui
 end
 
 -- [*calculDistance]
@@ -538,7 +572,7 @@ function addSquareForAStarPathfinding(pSquare,point,dir)
             square.score_Di = 1
 	if(dir > 4) then
 		--diagonal
-	square.score_Di = 2.7
+	square.score_Di = 10.7
 	end
 	square.score_F= (square.score_G * square.score_H) + (square.score_Di - 2 * square.score_G) * (math.min(dx,dy) )
 	square.dir=dir
@@ -575,7 +609,7 @@ function init()
 	-- [@yOffset]     Position de decalage y
 	-- [@tag]         tag du sprite
 	-- [@pColor]       color custom du sprite
-	hero =creerSprite(12,1,1,nil,nil,nil,"hero")
+	hero = creerSprite(12,1,1,nil,nil,nil,"hero")
 	creerSprite(12,2,1,nil,nil,nil,"npc",character[1].color)
 	creerSprite(12,3,1,nil,nil,nil,"npc",character[2].color)
 	creerSprite(12,4,1,nil,nil,nil,"npc",character[3].color)
@@ -586,6 +620,20 @@ function init()
 	creerSprite(12,9,1,nil,nil,nil,"npc",character[8].color)
 	creerSprite(12,10,1,nil,nil,nil,"npc",character[9].color)
 
+	-- @x           position x du rectangle
+	-- @y           position y du rectangle
+	-- @width       largeur du rectangle
+	-- @height      hauteur du rectangle
+	-- @color       couleur du rectangle
+	-- [@color]     texte du button
+
+	creerUI(2,98,33,8,9,"CHAR")
+	creerUI(2,107,33,8,9,"QUEST")
+	creerUI(2,116,33,8,9,"MAP")
+	creerUI(2,125,33,8,9,"MENU")
+
+	creerUI(205,98,33,8,9,"INV")
+	creerUI(205,107,33,8,9,"SPELLS")
 	hero.tag = "hero"
 end
 
@@ -602,12 +650,14 @@ function TIC()
 	x2=mx
 	y2=my
 	local point = screenToMap(mx, my)
-	if (md == true and path_already_loaded == false) then
+
+	if (md == true and path_already_loaded == false and y2 <=96) then
 		path_already_loaded = true
 		helping_box.col = point.x
 		helping_box.row = point.y
 		-- define the pathFinding for the player
 		hero.pathTrackObject = {}
+		hero.currentAnimation = "move"
 		AStarPathfinding( point ,hero);
 		-- set the movment into motion for the player
 
@@ -622,6 +672,7 @@ function TIC()
 	end
 
 	hero.followPath()
+	hero.animation.setMotion()
 	poke(0x3FFB,8)
 	local x=Sprites[1].col
 	local y =Sprites[1].row
@@ -699,13 +750,12 @@ function drawSprite()
 
 		local pAlpha = sprite.pAlpha
 		outLineSprite(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha)
-
 		if(sprite.color ~= nil) then
 			switchPal(12,sprite.color.skin)
 			switchPal(4,sprite.color.shirt)
 			switchPal(6,sprite.color.pant)
-			if(sprite.color.alpha ~= sprite.pAlpha) then
-				switchPal(sprite.pAlpha,pAlpha)
+			if(sprite.color.alpha ~= sprite.pAlpha and sprite.color.alpha ~= nil) then
+				switchPal(sprite.color.alpha,sprite.pAlpha)
 			end
 
 		end
@@ -811,7 +861,48 @@ function OVR()
 			spr(angel_spr[y][x],155 + x*8,88 + y*8,5)
 		end
 	end
+	for i_spr=1,#UI do
+		local ui = UI[i_spr]
+		local x = ui.x
+		local y = ui.y
+		local w = ui.width
+		local h = ui.height
+		local c = ui.color
+		local text = ui.text
+		if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
+		   c = 2
+		end
+		rect(x,y,w,h,c)
+		print(text,x+1,y+1,15,false,1,true)
+	end
+	--skill UI
+	rect(212,116,19,17,10)
+	rect(213,117,17,15,2)
+
+	--item UI
+	rect(93,95,65,9,10)
+
+	--case
+	rect(94,96,7,7,2)
+	rect(102,96,7,7,2)
+	rect(110,96,7,7,2)
+	rect(118,96,7,7,2)
+	rect(126,96,7,7,2)
+	rect(134,96,7,7,2)
+	rect(142,96,7,7,2)
+	rect(150,96,7,7,2)
+
+	--Fenetre interaction
+	rect(87,106,80,25,10)
+	rect(88,107,78,23,2)
+	spr(114,93,94,0)
+
+
+
 	spr(100,x2,y2,5,SCALE);
+
+
+
 end
 
 
