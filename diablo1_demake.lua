@@ -2,7 +2,9 @@
 -- [*init]
 -- [*tic]
 -- [*creerSprite]
--- [*creerUI]
+-- [*creerUIButton]
+-- [*creerUIPanel]
+-- [*creerUIText]
 -- [*calculDistance]
 -- [*AStarPathfinding]
 -- [*trackPath]
@@ -49,7 +51,15 @@ map={
 
 }
 Sprites = {}
-UI = {}
+UI = {
+	baseMenu= { button={},panel={},text={} },
+	char={ button={},panel={},text={}  },
+	menu={ button={},panel={},text={}  },
+	inv={ button={},panel={},text={}  },
+	skills={ button={},panel={},text={}  },
+	quest={ button={},panel={},text={}  },
+	currentState = ""
+}
 hero = {}
 helping_box={
 	row=0,
@@ -57,6 +67,8 @@ helping_box={
 }
 path_already_loaded = false
 path_already_loaded_counter = 0
+button_click_already = false
+button_click_already_counter = 0
 path_tile={}
 path_tile_reverse={}
 character ={
@@ -277,24 +289,78 @@ return sprite
 end
 
 
--- [*creerUI]
-function creerUI(x,y,width,height,color,text)
+-- [*creerUIButton]
+function creerUIButton(x,y,width,height,color,text,context)
+-- @x                  position x du rectangle
+-- @y                  position y du rectangle
+-- @width              largeur du rectangle
+-- @height             hauteur du rectangle
+-- @color(table)       couleur du rectangle
+-- [@text]             texte du button
+-- @context            le context de l'UI
+
+
+local button = {}
+button.x = x
+button.y = y
+button.width = width
+button.height = height
+button.color = color[1]
+button.colorHover = color[2]
+button.text =""
+button.visible = false
+button.context = context
+if(button.text ~= nil) then
+button.text = text
+end
+table.insert(UI[context].button,button)
+return button
+end
+
+function changeUIbuttonState(state)
+UI.currentState = state
+end
+
+-- [*creerUIPanel]
+function creerUIPanel(x,y,width,height,color,context)
 -- @x           position x du rectangle
 -- @y           position y du rectangle
 -- @width       largeur du rectangle
 -- @height      hauteur du rectangle
 -- @color       couleur du rectangle
+-- @context     le context de l'UI
 
 
-local ui = {}
-ui.x = x
-ui.y = y
-ui.width = width
-ui.height = height
-ui.color = color
-ui.text = text
-table.insert(UI,ui)
-return ui
+local panel = {}
+panel.x = x
+panel.y = y
+panel.width = width
+panel.height = height
+panel.color = color
+panel.visible = false
+
+table.insert(UI[context].panel,panel)
+return panel
+end
+
+-- [*creerUIText]
+function creerUIText(x,y,color,text,context)
+-- @x           position x du text
+-- @y           position y du text
+-- @color       couleur du text
+-- @text        texte du button
+-- @context     le context de l'UI
+
+
+local text = {}
+text.x = x
+text.y = y
+text.width = width
+text.height = height
+text.color = color
+text.visible = false
+table.insert(UI[context].text,text)
+return text
 end
 
 -- [*calculDistance]
@@ -620,21 +686,65 @@ function init()
 	creerSprite(12,9,1,nil,nil,nil,"npc",character[8].color)
 	creerSprite(12,10,1,nil,nil,nil,"npc",character[9].color)
 
+	-- @x              position x du rectangle
+	-- @y              position y du rectangle
+	-- @width          largeur du rectangle
+	-- @height         hauteur du rectangle
+	-- @color(objet)   couleur du rectangle
+	-- [@text]         texte du button
+
+	local button = creerUIButton(2,98,33,8,{9,0},"CHAR","baseMenu")
+	button.state = "CHAR"
+	button = creerUIButton(2,107,33,8,{9,0},"QUEST","baseMenu")
+	button.state = "QUEST"
+	button = creerUIButton(2,116,33,8,{9,0},"MAP","baseMenu")
+	button.state = "MAP"
+	button = creerUIButton(2,125,33,8,{9,0},"MENU","baseMenu")
+	button.state = "MENU"
+
+	button = creerUIButton(205,98,33,8,{9,0},"INV","baseMenu")
+	button.state = "INV"
+	button = creerUIButton(205,107,33,8,{9,0},"SPELLS","baseMenu")
+	button.state = "SPELLS"
+
 	-- @x           position x du rectangle
 	-- @y           position y du rectangle
 	-- @width       largeur du rectangle
 	-- @height      hauteur du rectangle
 	-- @color       couleur du rectangle
-	-- [@color]     texte du button
+	-- @context     le context de l'UI
 
-	creerUI(2,98,33,8,9,"CHAR")
-	creerUI(2,107,33,8,9,"QUEST")
-	creerUI(2,116,33,8,9,"MAP")
-	creerUI(2,125,33,8,9,"MENU")
+	--skill UI
+	creerUIPanel(212,116,19,17,10,"baseMenu")
+	creerUIPanel(213,117,17,15,2,"baseMenu")
 
-	creerUI(205,98,33,8,9,"INV")
-	creerUI(205,107,33,8,9,"SPELLS")
+	--item UI
+	creerUIPanel(93,95,65,9,10,"baseMenu")
+
+	--case
+	creerUIPanel(94,96,7,7,2,"baseMenu")
+	creerUIPanel(102,96,7,7,2,"baseMenu")
+	creerUIPanel(110,96,7,7,2,"baseMenu")
+	creerUIPanel(118,96,7,7,2,"baseMenu")
+	creerUIPanel(126,96,7,7,2,"baseMenu")
+	creerUIPanel(134,96,7,7,2,"baseMenu")
+	creerUIPanel(142,96,7,7,2,"baseMenu")
+	creerUIPanel(150,96,7,7,2,"baseMenu")
+
+	--Fenetre interaction
+	creerUIPanel(87,106,80,25,10,"baseMenu")
+	creerUIPanel(88,107,78,23,2,"baseMenu")
+
+
+	-- @x           position x du text
+	-- @y           position y du text
+	-- @color       couleur du text
+	-- @text        texte du button
+	-- @context     le context de l'UI
+	-- creerUIText()
+
 	hero.tag = "hero"
+
 end
 
 
@@ -660,14 +770,38 @@ function TIC()
 		hero.currentAnimation = "move"
 		AStarPathfinding( point ,hero);
 		-- set the movment into motion for the player
-
 	end
-
 	if (path_already_loaded == true) then
 		path_already_loaded_counter = path_already_loaded_counter + 1
 		if path_already_loaded_counter == 20 then
 			path_already_loaded_counter = 0
 			path_already_loaded = false
+		end
+	end
+
+	if (md == true and button_click_already == false and y2 >=96) then
+		-- set the function ()
+		for i=1,#UI.baseMenu.button do
+			local button = UI.baseMenu.button[i]
+			local x = button.x
+			local y = button.y
+			local w = button.width
+			local h = button.height
+			if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
+				   if(button.state ~= nil) then
+					   changeUIbuttonState(button.state)
+					   button_click_already = true
+				   end
+			end
+
+		end
+	end
+
+	if (button_click_already == true) then
+		button_click_already_counter = button_click_already_counter + 1
+		if button_click_already_counter == 20 then
+			button_click_already_counter = 0
+			button_click_already = false
 		end
 	end
 
@@ -723,13 +857,13 @@ function draw()
 		end
 	end
 
-	for i,v in ipairs(path_tile) do
-	     setTile(16,v.row,v.col,0)
-	end
-
-	for i,v in ipairs(path_tile_reverse) do
-	     setTile(4,v.row,v.col,0)
-	end
+	-- for i,v in ipairs(path_tile) do
+	--      setTile(16,v.row,v.col,0)
+	-- end
+	--
+	-- for i,v in ipairs(path_tile_reverse) do
+	--      setTile(4,v.row,v.col,0)
+	-- end
 	draw_helping_box()
 	drawSprite()
 end
@@ -861,40 +995,40 @@ function OVR()
 			spr(angel_spr[y][x],155 + x*8,88 + y*8,5)
 		end
 	end
-	for i_spr=1,#UI do
-		local ui = UI[i_spr]
-		local x = ui.x
-		local y = ui.y
-		local w = ui.width
-		local h = ui.height
-		local c = ui.color
-		local text = ui.text
+
+	--<UI baseMenu>
+	for i=1,#UI.baseMenu.button do
+		local button = UI.baseMenu.button[i]
+		local x = button.x
+		local y = button.y
+		local w = button.width
+		local h = button.height
+		local c = button.color
+		local text = button.text
 		if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
-		   c = 2
+		   c = button.colorHover
 		end
 		rect(x,y,w,h,c)
 		print(text,x+1,y+1,15,false,1,true)
 	end
-	--skill UI
-	rect(212,116,19,17,10)
-	rect(213,117,17,15,2)
+	for i=1,#UI.baseMenu.panel do
+		local panel = UI.baseMenu.panel[i]
+		local x = panel.x
+		local y = panel.y
+		local w = panel.width
+		local h = panel.height
+		local c = panel.color
+		rect(x,y,w,h,c)
+	end
+	for i=1,#UI.baseMenu.text do
+		local textUI = UI.baseMenu.text[i]
+		local x = textUI.x
+		local y = textUI.y
+		local text = textUI.width
+		-- rect(x,y,w,h,c)
+	end
+	--</UI baseMenu>
 
-	--item UI
-	rect(93,95,65,9,10)
-
-	--case
-	rect(94,96,7,7,2)
-	rect(102,96,7,7,2)
-	rect(110,96,7,7,2)
-	rect(118,96,7,7,2)
-	rect(126,96,7,7,2)
-	rect(134,96,7,7,2)
-	rect(142,96,7,7,2)
-	rect(150,96,7,7,2)
-
-	--Fenetre interaction
-	rect(87,106,80,25,10)
-	rect(88,107,78,23,2)
 	spr(114,93,94,0)
 
 
