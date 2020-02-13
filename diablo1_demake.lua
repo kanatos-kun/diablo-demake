@@ -17,7 +17,7 @@
 -- [*screenToMap]
 -- [*OVR]
 -- [*switchPal]
-
+--[*changeUIbuttonState]
 
 dt = 1/60
 t=0
@@ -56,9 +56,16 @@ UI = {
 	char={ button={},panel={},text={}  },
 	menu={ button={},panel={},text={}  },
 	inv={ button={},panel={},text={}  },
-	skills={ button={},panel={},text={}  },
+	spells={ button={},panel={},text={}  },
 	quest={ button={},panel={},text={}  },
 	currentState = ""
+	-- BASE_MENU
+	-- CHAR
+	-- MAP
+	-- MENU
+	-- SPELL
+	-- QUEST
+	-- INV
 }
 hero = {}
 helping_box={
@@ -317,8 +324,13 @@ table.insert(UI[context].button,button)
 return button
 end
 
+--[*changeUIbuttonState]
 function changeUIbuttonState(state)
-UI.currentState = state
+	if(UI.currentState ~= state) then
+	UI.currentState = state
+	else
+	UI.currentState = "BASE_MENU"
+	end
 end
 
 -- [*creerUIPanel]
@@ -338,17 +350,16 @@ panel.width = width
 panel.height = height
 panel.color = color
 panel.visible = false
-
 table.insert(UI[context].panel,panel)
 return panel
 end
 
 -- [*creerUIText]
-function creerUIText(x,y,color,text,context)
+function creerUIText(x,y,color,pText,context)
 -- @x           position x du text
 -- @y           position y du text
 -- @color       couleur du text
--- @text        texte du button
+-- @pText        texte du button
 -- @context     le context de l'UI
 
 
@@ -359,6 +370,7 @@ text.width = width
 text.height = height
 text.color = color
 text.visible = false
+text.text=pText
 table.insert(UI[context].text,text)
 return text
 end
@@ -714,6 +726,7 @@ function init()
 	-- @color       couleur du rectangle
 	-- @context     le context de l'UI
 
+--<UI basemenu>
 	--skill UI
 	creerUIPanel(212,116,19,17,10,"baseMenu")
 	creerUIPanel(213,117,17,15,2,"baseMenu")
@@ -734,7 +747,45 @@ function init()
 	--Fenetre interaction
 	creerUIPanel(87,106,80,25,10,"baseMenu")
 	creerUIPanel(88,107,78,23,2,"baseMenu")
+	--<UI /basemenu>
 
+	--<UI char>
+	creerUIPanel(0,0,111,94,0,"char")
+	creerUIPanel(0,0,110,93,3,"char")
+	creerUIText(2,3,15,"Jojoffrey","char")
+	--<UI /char>
+
+	--<UI quest>
+	creerUIPanel(0,0,111,94,0,"quest")
+	creerUIPanel(0,0,110,93,3,"quest")
+	creerUIPanel(6,4,98,84,0,"quest")
+	creerUIText(43,78,15,"close","quest")
+	--<UI /quest>
+
+	--<UI map>
+	--<UI /map>
+
+	--<UI menu>
+	creerUIPanel(98,9,54,94,15,"menu")
+	creerUIPanel(99,10,52,92,0,"menu")
+	creerUIText(113,22,15,"save","menu")
+	creerUIText(113,42,15,"load","menu")
+	creerUIText(113,62,15,"option","menu")
+	creerUIText(113,82,15,"title","menu")
+
+	--<UI /menu>
+
+	--<UI inv>
+	creerUIPanel(145,0,95,94,0,"inv")
+	creerUIPanel(146,0,95,93,3,"inv")
+	creerUIText(146,1,15,"inv","inv")
+	--<UI /inv>
+
+	--<UI spells>
+	creerUIPanel(145,0,95,94,0,"spells")
+	creerUIPanel(146,0,95,93,3,"spells")
+	creerUIText(146,1,15,"spells","spells")
+	--<UI /spells>
 
 	-- @x           position x du text
 	-- @y           position y du text
@@ -996,6 +1047,19 @@ function OVR()
 		end
 	end
 
+	-- baseMenu=
+	-- char=
+	-- menu=
+	-- inv=
+	-- skills=
+	-- quest=
+	-- BASE_MENU
+	-- CHAR
+	-- MAP
+	-- MENU
+	-- SPELL
+	-- QUEST
+	-- INV
 	--<UI baseMenu>
 	for i=1,#UI.baseMenu.button do
 		local button = UI.baseMenu.button[i]
@@ -1024,12 +1088,70 @@ function OVR()
 		local textUI = UI.baseMenu.text[i]
 		local x = textUI.x
 		local y = textUI.y
-		local text = textUI.width
+		local text = textUI.text
+		print(text,x+1,y+1,15,false,1,true)
 		-- rect(x,y,w,h,c)
 	end
 	--</UI baseMenu>
 
-	spr(114,93,94,0)
+local _uiState = "BASE_MENU"
+if(UI.currentState == "CHAR") then
+	_uiState = "char"
+elseif (UI.currentState =="QUEST") then
+	_uiState = "quest"
+elseif (UI.currentState =="INV") then
+	_uiState = "inv"
+elseif (UI.currentState =="MENU") then
+	_uiState = "menu"
+elseif (UI.currentState =="SPELLS") then
+	_uiState = "spells"
+end
+	if(_uiState ~= "BASE_MENU") then
+		--<UI char>
+		for i=1,#UI[_uiState].button do
+			local button = UI[_uiState].button[i]
+			local x = button.x
+			local y = button.y
+			local w = button.width
+			local h = button.height
+			local c = button.color
+			local text = button.text
+			if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
+			   c = button.colorHover
+			end
+			rect(x,y,w,h,c)
+			print(text,x+1,y+1,15,false,1,true)
+		end
+		for i=1,#UI[_uiState].panel do
+			local panel = UI[_uiState].panel[i]
+			local x = panel.x
+			local y = panel.y
+			local w = panel.width
+			local h = panel.height
+			local c = panel.color
+			rect(x,y,w,h,c)
+		end
+
+		for i=1,#UI[_uiState].text do
+			local textUI = UI[_uiState].text[i]
+			local x = textUI.x
+			local y = textUI.y
+			local text = textUI.text
+			print(text,x+1,y+1,15,false,1,true)
+		end
+		--<UI /char>
+
+	end
+	if(UI.currentState == "MAP") then
+		--<UI map>
+		-- enter the function
+		--</UI map>
+
+	end
+
+
+
+	-- spr(114,93,94,0)
 
 
 
