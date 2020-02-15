@@ -5,6 +5,7 @@
 -- [*creerUIButton]
 -- [*creerUIPanel]
 -- [*creerUIText]
+-- [*creerCharacterData]
 -- [*calculDistance]
 -- [*AStarPathfinding]
 -- [*trackPath]
@@ -18,7 +19,7 @@
 -- [*OVR]
 -- [*switchPal]
 --[*changeUIbuttonState]
-
+sync(0,0,false)
 dt = 1/60
 t=0
 x_map=52
@@ -116,7 +117,7 @@ character ={
 			pant = 1
 		}
 	},
-	--[4]
+	--[5]
 	-- blacksmith
 	{
 		color ={
@@ -125,7 +126,7 @@ character ={
 			pant = 3
 		}
 	},
-	--[5]
+	--[6]
 	-- drunkyard
 	{
 		color ={
@@ -134,7 +135,7 @@ character ={
 			pant = 4
 		}
 	},
-	--[6]
+	--[7]
 	-- blue man
 	{
 		color ={
@@ -143,7 +144,7 @@ character ={
 			pant = 3
 		}
 	},
-	--[7]
+	--[8]
 	-- knight
 	{
 		color ={
@@ -152,13 +153,49 @@ character ={
 			pant = 3
 		}
 	},
-	--[8]
+	--[9]
 	-- girl with yellow robe
 	{
 		color ={
 			skin = 12,
 			shirt = 14,
 			pant = 14
+		}
+	},
+	--[10]
+	-- hero
+	{
+		color ={
+			skin = 12,
+			shirt = 4,
+			pant = 6
+		},
+		data = {
+			name = "Jojoffrey",
+			class="warrior",
+			lvl = 1,
+			hp = 50,
+			mana = 20,
+			strength = 10,
+			magic = 10,
+			dexterity = 10,
+			vitality = 10,
+			hp_bonus = 0,
+			mana_bonus = 0,
+			strength_bonus = 0,
+			magic_bonus = 0,
+			dexterity_bonus = 0,
+			vitality_bonus = 0,
+			gold = 0,
+			armor_class = 0,
+			hit = 1,
+			damage = 0,
+			resistMagic = 0,
+			resistFire = 0,
+			resistLightning = 0,
+			currentExp = 0,
+			nextLevel = 300,
+			statsPoint = 0
 		}
 	},
 
@@ -290,9 +327,50 @@ if yOffset == nil then
 else
   sprite.y_offset = yOffset
 end
+sprite.data = creerCharacterData(character[10].data,tag)
 
 table.insert(Sprites,sprite)
 return sprite
+end
+--[*creerCharacterData]
+function creerCharacterData(obj,tag)
+local data = {}
+
+if(tag =="hero") then
+data.name = obj.name
+data.class = obj.class
+data.lvl = obj.lvl
+data.hp = obj.hp
+data.hp_bonus = obj.hp_bonus
+
+data.mana = obj.mana
+data.mana_bonus = obj.mana_bonus
+
+data.strength = obj.strength
+data.strength_bonus = obj.strength_bonus
+
+data.magic = obj.magic
+data.magic_bonus = obj.magic_bonus
+
+data.dexterity = obj.dexterity
+data.dexterity_bonus = obj.dexterity_bonus
+
+data.vitality = obj.vitality
+data.vitality_bonus = obj.vitality_bonus
+
+data.gold = obj.gold
+data.armor_class = obj.armor_class
+data.hit = obj.hit
+data.damage = obj.damage
+data.resistMagic =obj.resistMagic
+data.resistFire = obj.resistFire
+data.resistLightning = obj.resistLightning
+data.currentExp = obj.currentExp
+data.nextLevel = obj.nextLevel
+data.statsPoint = obj.statsPoint
+end
+
+return data;
 end
 
 
@@ -752,7 +830,27 @@ function init()
 	--<UI char>
 	creerUIPanel(0,0,111,94,0,"char")
 	creerUIPanel(0,0,110,93,3,"char")
-	creerUIText(2,3,15,"Jojoffrey","char")
+	creerUIText(2,3,15,hero.data.name,"char")
+	creerUIText(80,3,15,hero.data.class,"char")
+	creerUIText(2,15,15,"Lv."..hero.data.lvl,"char")
+	creerUIText(72,15,15,"xp."..hero.data.currentExp,"char")
+	creerUIText(5,38,15,"str     "..hero.data.strength,"char")
+	creerUIText(42,38,8,"+ "..hero.data.strength_bonus,"char")
+
+	creerUIText(86,38,15,"gold","char")
+	creerUIText(5,48,15,"ma       "..hero.data.magic,"char")
+	creerUIText(42,48,8,"+ "..hero.data.magic_bonus,"char")
+
+	creerUIText(91,49,15,hero.data.gold,"char")
+	creerUIText(5,58,15,"dex     "..hero.data.dexterity,"char")
+	creerUIText(42,58,8,"+ "..hero.data.dexterity_bonus,"char")
+
+	creerUIText(5,68,15,"vit      "..hero.data.vitality,"char")
+	creerUIText(42,68,8,"+ "..hero.data.vitality_bonus,"char")
+
+	creerUIText(5,78,15,"pt       "..hero.data.statsPoint,"char")
+
+
 	--<UI /char>
 
 	--<UI quest>
@@ -1137,7 +1235,8 @@ end
 			local x = textUI.x
 			local y = textUI.y
 			local text = textUI.text
-			print(text,x+1,y+1,15,false,1,true)
+			local c = textUI.color
+			print(text,x+1,y+1,c,false,1,true)
 		end
 		--<UI /char>
 
