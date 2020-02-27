@@ -18,7 +18,34 @@
 -- [*screenToMap]
 -- [*OVR]
 -- [*switchPal]
---[*changeUIbuttonState]
+-- [*changeUIbuttonState]
+-- [*TICGame]
+-- [*initGame]
+-- [*drawGame]
+-- [*OVRGame]
+-- [*TICTitle]
+-- [*initTitle]
+-- [*drawTitle]
+-- [*OVRTitle]
+--[*generateUIEvent]
+--[*TICUpdateButton]
+--[*memoryFunction]
+--[*drawDialogBox]
+--[*creerDialogueBox]
+--[*changeGameState]
+--help block:
+--<UI basemenu>
+--<UI char>
+--<UI char/1>
+--<UI quest>
+--<UI map>
+--<UI menu>
+--<UI inv>
+--<UI spells>
+--<UI titleMenu>
+--<UI titleMenu/startGame>
+
+
 sync(0,0,false)
 dt = 1/60
 t=0
@@ -51,16 +78,25 @@ map={
 	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 
 }
+gameState = "TITLE"
+-- Gamestate :
+-- TITLE
+-- GAME
+-- LOADING
 Sprites = {}
+
 UI = {
-	baseMenu= { button={},panel={},text={} },
-	char={ button={},panel={},text={}  },
-	["char/1"]={ button={},panel={},text={}  },
-	menu={ button={},panel={},text={}  },
-	inv={ button={},panel={},text={}  },
-	spells={ button={},panel={},text={}  },
-	quest={ button={},panel={},text={}  },
-	currentState = ""
+	baseMenu= { button={},panel={},text={},dBox={} },
+	char={ button={},panel={},text={},dBox={}  },
+	["char/1"]={ button={},panel={},text={},dBox={}  },
+	menu={ button={},panel={},text={},dBox={}  },
+	inv={ button={},panel={},text={},dBox={}  },
+	spells={ button={},panel={},text={},dBox={}  },
+	quest={ button={},panel={},text={},dBox={}  },
+	titleMenu={ button={},panel={},text={},dBox={}  },
+	["titleMenu/startGame"]={ button={},panel={},text={},dBox={}  },
+
+	currentState = "BASE_MENU"
 	-- BASE_MENU
 	-- CHAR
 	-- MAP
@@ -68,7 +104,9 @@ UI = {
 	-- SPELL
 	-- QUEST
 	-- INV
+	-- TITLE_MENU
 }
+isAlreadyLoaded={GAME=false,TITLE=false}
 hero = {}
 helping_box={
 	row=0,
@@ -201,8 +239,50 @@ character ={
 			statsPoint = 0
 		}
 	},
-
 }
+--[*memoryFunction]
+pmem("a","22")
+pmem("hp",50)
+-- if(pmem(0) == nil) then
+-- 	pmem(0,0)
+-- else
+-- 	pmem(0,pmem(0)+1)
+-- end
+trace(pmem("hp") )
+
+-- [*switchPal]
+function switchPal(c0,c1)
+	if(c0==nil and c1==nil)then for i=0,15 do poke4(0x3FF0*2+i,i)end
+	else poke4(0x3FF0*2+c0,c1)end
+end
+
+
+--[*drawDialogBox]
+function drawDialogBox(x,y,col,row)
+	for r=1,row do
+
+		for c=1,col do
+			if(c==1 and r==1)then
+			   spr(133,x+(c*8),y+(r*8),5)
+		   	elseif(c==1 and r==row )then
+			   spr(165,x+(c*8),y+(r*8),5)
+		   	elseif(c==1 and r~=1)then
+			   spr(149,x+(c*8),y+(r*8),5)
+		   	elseif(r==1 and c==col)then
+			   spr(135,x+(c*8),y+(r*8),5)
+		   	elseif(c==col and r==row)then
+		   	   spr(167,x+(c*8),y+(r*8),5)
+		   	elseif(c==col and r~=row) then
+		      	   spr(151,x+(c*8),y+(r*8),5)
+		   	elseif(r==1)then
+			   spr(134,x+(c*8),y+(r*8),5)
+		   	elseif(r==row)then
+			   spr(166,x+(c*8),y+(r*8),5)
+			end
+		end
+
+	end
+end
 
 -- [*creerSprite]
 function creerSprite(index,col,row,pAlpha,xOffset,yOffset,tag,pColor)
@@ -378,6 +458,24 @@ end
 return data;
 end
 
+-- [*creerDialogueBox]
+function creerDialogueBox(x,y,col,row,context)
+-- @x                  position x du dialogBox
+-- @y                  position y du dialogBox
+-- @col                nombre de sprite au niveau de la colonne
+-- @row                nombre de sprite au niveau de la ligne
+-- @context            le context de l'UI
+
+
+local dBox = {}
+dBox.x = x
+dBox.y = y
+dBox.col = col
+dBox.row = row
+dBox.context = context
+table.insert(UI[context].dBox,dBox)
+return dBox
+end
 
 -- [*creerUIButton]
 function creerUIButton(x,y,width,height,color,text,context)
@@ -411,6 +509,7 @@ end
 
 --[*changeUIbuttonState]
 function changeUIbuttonState(state)
+	trace(state)
 	if(UI.currentState ~= state) then
 	UI.currentState = state
 	else
@@ -761,250 +860,254 @@ function addSquareForAStarPathfinding(pSquare,point,dir)
 	return square
 end
 
-
--- [*init]
-function init()
-	-- @i             index du sprite utilise
-	-- @row           position x du sprite(en ligne)
-	-- @col           position y du sprite(en colonne)
-	-- [@pAlpha]      Couleur alpha utilise
-	-- [@xOffset]     Position de decalage x
-	-- [@yOffset]     Position de decalage y
-	-- [@tag]         tag du sprite
-	-- [@pColor]       color custom du sprite
-	hero = creerSprite(12,1,1,nil,nil,nil,"hero")
-	creerSprite(12,2,1,nil,nil,nil,"npc",character[1].color)
-	creerSprite(12,3,1,nil,nil,nil,"npc",character[2].color)
-	creerSprite(12,4,1,nil,nil,nil,"npc",character[3].color)
-	creerSprite(12,5,1,nil,nil,nil,"npc",character[4].color)
-	creerSprite(12,6,1,nil,nil,nil,"npc",character[5].color)
-	creerSprite(12,7,1,nil,nil,nil,"npc",character[6].color)
-	creerSprite(12,8,1,nil,nil,nil,"npc",character[7].color)
-	creerSprite(12,9,1,nil,nil,nil,"npc",character[8].color)
-	creerSprite(12,10,1,nil,nil,nil,"npc",character[9].color)
-
-	-- @x              position x du rectangle
-	-- @y              position y du rectangle
-	-- @width          largeur du rectangle
-	-- @height         hauteur du rectangle
-	-- @color(objet)   couleur du rectangle
-	-- [@text]         texte du button
-
-	local button = creerUIButton(2,98,33,8,{9,0,15,15},"CHAR","baseMenu")
-	button.state = "CHAR"
-	button = creerUIButton(2,107,33,8,{9,0,15,15},"QUEST","baseMenu")
-	button.state = "QUEST"
-	button = creerUIButton(2,116,33,8,{9,0,15,15},"MAP","baseMenu")
-	button.state = "MAP"
-	button = creerUIButton(2,125,33,8,{9,0,15,15},"MENU","baseMenu")
-	button.state = "MENU"
-
-	button = creerUIButton(205,98,33,8,{9,0,15,15},"INV","baseMenu")
-	button.state = "INV"
-	button = creerUIButton(205,107,33,8,{9,0,15,15},"SPELLS","baseMenu")
-	button.state = "SPELLS"
-
---<UI basemenu>
-	--skill UI
-	creerUIPanel(212,116,19,17,10,"baseMenu")
-	creerUIPanel(213,117,17,15,2,"baseMenu")
-
-	--item UI
-	creerUIPanel(93,95,65,9,10,"baseMenu")
-
-	--case
-	creerUIPanel(94,96,7,7,2,"baseMenu")
-	creerUIPanel(102,96,7,7,2,"baseMenu")
-	creerUIPanel(110,96,7,7,2,"baseMenu")
-	creerUIPanel(118,96,7,7,2,"baseMenu")
-	creerUIPanel(126,96,7,7,2,"baseMenu")
-	creerUIPanel(134,96,7,7,2,"baseMenu")
-	creerUIPanel(142,96,7,7,2,"baseMenu")
-	creerUIPanel(150,96,7,7,2,"baseMenu")
-
-	--Fenetre interaction
-	creerUIPanel(87,106,80,25,10,"baseMenu")
-	creerUIPanel(88,107,78,23,2,"baseMenu")
-	--<UI /basemenu>
-
-	--<UI char>
-	creerUIPanel(0,0,111,94,0,"char")
-	creerUIPanel(0,0,110,93,3,"char")
-	creerUIText(2,3,15,hero.data.name,"char")
-	creerUIText(80,3,15,hero.data.class,"char")
-	creerUIText(2,15,15,"Lv."..hero.data.lvl,"char")
-	creerUIText(72,15,15,"xp."..hero.data.currentExp,"char")
-	creerUIText(50,25,15,"next lvl."..hero.data.nextLevel,"char")
-	creerUIText(5,38,15,"str     "..hero.data.strength,"char")
-	creerUIText(42,38,8,"+ "..hero.data.strength_bonus,"char")
-
-	creerUIText(86,38,15,"gold","char")
-	creerUIText(5,48,15,"ma       "..hero.data.magic,"char")
-	creerUIText(42,48,8,"+ "..hero.data.magic_bonus,"char")
-
-	creerUIText(91,49,15,hero.data.gold,"char")
-	creerUIText(5,58,15,"dex     "..hero.data.dexterity,"char")
-	creerUIText(42,58,8,"+ "..hero.data.dexterity_bonus,"char")
-
-	creerUIText(5,68,15,"vit      "..hero.data.vitality,"char")
-	creerUIText(42,68,8,"+ "..hero.data.vitality_bonus,"char")
-	-- @x                  position x du rectangle
-	-- @y                  position y du rectangle
-	-- @width              largeur du rectangle
-	-- @height             hauteur du rectangle
-	-- @color(table)       couleur du rectangle
-	-- [@text]             texte du button
-	-- @context            le context de l'UI
-	creerUIText(5,78,15,"pt       "..hero.data.statsPoint,"char")
-	button = creerUIButton(90,80,15,10,{9,0,15,15}," =>","char")
-	button.state = "CHAR/1"
-	--<UI /char>
-	--<UI char/1>
-	-- data = {
-	-- 	name = "Jojoffrey",
-	-- 	class="warrior",
-	-- 	lvl = 1,
-	-- 	hp = 50,
-	-- 	mana = 20,
-	-- 	strength = 10,
-	-- 	magic = 10,
-	-- 	dexterity = 10,
-	-- 	vitality = 10,
-	-- 	hp_bonus = 0,
-	-- 	mana_bonus = 0,
-	-- 	strength_bonus = 0,
-	-- 	magic_bonus = 0,
-	-- 	dexterity_bonus = 0,
-	-- 	vitality_bonus = 0,
-	-- 	gold = 0,
-	-- 	armor_class = 0,
-	-- 	hit = 1,
-	-- 	damage = 0,
-	-- 	resistMagic = 0,
-	-- 	resistFire = 0,
-	-- 	resistLightning = 0,
-	-- 	currentExp = 0,
-	-- 	nextLevel = 300,
-	-- 	statsPoint = 0
-	-- }
-	creerUIPanel(0,0,111,94,0,"char/1")
-	creerUIPanel(0,0,110,93,3,"char/1")
-	creerUIText(2,3,15,"hp "..hero.data.current_hp.."/"..hero.data.hp,"char/1")
-	creerUIText(60,3,15,"mana "..hero.data.current_mana.."/"..hero.data.mana,"char/1")
-	creerUIText(2,20,15,"armor \nclass  "..hero.data.armor_class,"char/1")
-	creerUIText(60,20,15,"hit % "..(hero.data.hit * 100),"char/1")
-	creerUIText(60,30,15,"dmg "..hero.data.damage,"char/1")
-	creerUIText(2,40,15,"resist ","char/1")
-	creerUIText(2,50,15,"mag     "..(hero.data.resistMagic* 100).."%","char/1")
-	creerUIText(2,60,15,"fire    "..(hero.data.resistFire* 100).."%","char/1")
-	creerUIText(2,70,15,"light  "..(hero.data.resistLightning* 100).."%","char/1")
-
-	button = creerUIButton(90,80,15,10,{9,0,15,15}," <=","char/1")
-	button.state = "CHAR"
-	--<UI /char/1>
-
-	--<UI quest>
-	creerUIPanel(0,0,111,94,0,"quest")
-	creerUIPanel(0,0,110,93,3,"quest")
-	creerUIPanel(6,4,98,84,0,"quest")
-	button = creerUIButton(43,78,25,10,{0,0,15,13},"close","quest")
-	button.state = "BASE_MENU"
-	--<UI /quest>
-
-	--<UI map>
-	--<UI /map>
-
-	--<UI menu>
-	creerUIPanel(98,9,54,94,15,"menu")
-	creerUIPanel(99,10,52,92,0,"menu")
-	button = creerUIButton(113,22,17,15,{0,0,15,13},"save","menu")
-	button = creerUIButton(113,42,15,15,{0,0,15,13},"load","menu")
-	button = creerUIButton(113,62,22,15,{0,0,15,13},"option","menu")
-	button = creerUIButton(113,82,17,15,{0,0,15,13},"title","menu")
-
-	--<UI /menu>
-
-	--<UI inv>
-	creerUIPanel(145,0,95,94,0,"inv")
-	creerUIPanel(146,0,95,93,3,"inv")
-	creerUIPanel(146,54,95,39,10,"inv")
-
-	creerUIPanel(185,0,19,19,10,"inv")
-	creerUIPanel(186,1,8,8,0,"inv")
-	creerUIPanel(195,1,8,8,0,"inv")
-	creerUIPanel(195,10,8,8,0,"inv")
-	creerUIPanel(186,10,8,8,0,"inv")
+-- [*initGame]
+function initGame()
+	UI.currentState="BASE_MENU"
 
 
-	creerUIPanel(185,21,19,19,10,"inv")
-	creerUIPanel(186,22,8,8,0,"inv")
-	creerUIPanel(195,22,8,8,0,"inv")
-	creerUIPanel(195,31,8,8,0,"inv")
-	creerUIPanel(186,31,8,8,0,"inv")
+      	if(isAlreadyLoaded.GAME==false) then
 
-	creerUIPanel(163,21,19,19,10,"inv")
-	creerUIPanel(164,22,8,8,0,"inv")
-	creerUIPanel(173,22,8,8,0,"inv")
-	creerUIPanel(173,31,8,8,0,"inv")
-	creerUIPanel(164,31,8,8,0,"inv")
 
-	creerUIPanel(207,21,19,19,10,"inv")
-	creerUIPanel(208,22,8,8,0,"inv")
-	creerUIPanel(217,22,8,8,0,"inv")
-	creerUIPanel(217,31,8,8,0,"inv")
-	creerUIPanel(208,31,8,8,0,"inv")
+		-- @i             index du sprite utilise
+		-- @row           position x du sprite(en ligne)
+		-- @col           position y du sprite(en colonne)
+		-- [@pAlpha]      Couleur alpha utilise
+		-- [@xOffset]     Position de decalage x
+		-- [@yOffset]     Position de decalage y
+		-- [@tag]         tag du sprite
+		-- [@pColor]       color custom du sprite
+		hero = creerSprite(12,1,1,nil,nil,nil,"hero")
+		creerSprite(12,2,1,nil,nil,nil,"npc",character[1].color)
+		creerSprite(12,3,1,nil,nil,nil,"npc",character[2].color)
+		creerSprite(12,4,1,nil,nil,nil,"npc",character[3].color)
+		creerSprite(12,5,1,nil,nil,nil,"npc",character[4].color)
+		creerSprite(12,6,1,nil,nil,nil,"npc",character[5].color)
+		creerSprite(12,7,1,nil,nil,nil,"npc",character[6].color)
+		creerSprite(12,8,1,nil,nil,nil,"npc",character[7].color)
+		creerSprite(12,9,1,nil,nil,nil,"npc",character[8].color)
+		creerSprite(12,10,1,nil,nil,nil,"npc",character[9].color)
 
-	creerUIPanel(172,42,10,10,10,"inv")
-	creerUIPanel(173,43,8,8,0,"inv")
+		-- @x              position x du rectangle
+		-- @y              position y du rectangle
+		-- @width          largeur du rectangle
+		-- @height         hauteur du rectangle
+		-- @color(objet)   couleur du rectangle
+		-- [@text]         texte du button
 
-	creerUIPanel(207,42,10,10,10,"inv")
-	creerUIPanel(208,43,8,8,0,"inv")
+		local button = creerUIButton(2,98,33,8,{9,0,15,15},"CHAR","baseMenu")
+		button.state = "CHAR"
+		button = creerUIButton(2,107,33,8,{9,0,15,15},"QUEST","baseMenu")
+		button.state = "QUEST"
+		button = creerUIButton(2,116,33,8,{9,0,15,15},"MAP","baseMenu")
+		button.state = "MAP"
+		button = creerUIButton(2,125,33,8,{9,0,15,15},"MENU","baseMenu")
+		button.state = "MENU"
 
-	creerUIPanel(207,8,10,10,10,"inv")
-	creerUIPanel(208,9,8,8,0,"inv")
+		button = creerUIButton(205,98,33,8,{9,0,15,15},"INV","baseMenu")
+		button.state = "INV"
+		button = creerUIButton(205,107,33,8,{9,0,15,15},"SPELLS","baseMenu")
+		button.state = "SPELLS"
 
-	for row = 1,4 do
-		for col = 1,10 do
-			creerUIPanel(148+(8* (col-1) +(col) ),55+(8*  (row-1) +(row) ),8,8,0,"inv")
+	--<UI basemenu>
+		--skill UI
+		creerUIPanel(212,116,19,17,10,"baseMenu")
+		creerUIPanel(213,117,17,15,2,"baseMenu")
+
+		--item UI
+		creerUIPanel(93,95,65,9,10,"baseMenu")
+
+		--case
+		creerUIPanel(94,96,7,7,2,"baseMenu")
+		creerUIPanel(102,96,7,7,2,"baseMenu")
+		creerUIPanel(110,96,7,7,2,"baseMenu")
+		creerUIPanel(118,96,7,7,2,"baseMenu")
+		creerUIPanel(126,96,7,7,2,"baseMenu")
+		creerUIPanel(134,96,7,7,2,"baseMenu")
+		creerUIPanel(142,96,7,7,2,"baseMenu")
+		creerUIPanel(150,96,7,7,2,"baseMenu")
+
+		--Fenetre interaction
+		creerUIPanel(87,106,80,25,10,"baseMenu")
+		creerUIPanel(88,107,78,23,2,"baseMenu")
+		--<UI /basemenu>
+
+		--<UI char>
+		creerUIPanel(0,0,111,94,0,"char")
+		creerUIPanel(0,0,110,93,3,"char")
+		creerUIText(2,3,15,hero.data.name,"char")
+		creerUIText(80,3,15,hero.data.class,"char")
+		creerUIText(2,15,15,"Lv."..hero.data.lvl,"char")
+		creerUIText(72,15,15,"xp."..hero.data.currentExp,"char")
+		creerUIText(50,25,15,"next lvl."..hero.data.nextLevel,"char")
+		creerUIText(5,38,15,"str     "..hero.data.strength,"char")
+		creerUIText(42,38,8,"+ "..hero.data.strength_bonus,"char")
+
+		creerUIText(86,38,15,"gold","char")
+		creerUIText(5,48,15,"ma       "..hero.data.magic,"char")
+		creerUIText(42,48,8,"+ "..hero.data.magic_bonus,"char")
+
+		creerUIText(91,49,15,hero.data.gold,"char")
+		creerUIText(5,58,15,"dex     "..hero.data.dexterity,"char")
+		creerUIText(42,58,8,"+ "..hero.data.dexterity_bonus,"char")
+
+		creerUIText(5,68,15,"vit      "..hero.data.vitality,"char")
+		creerUIText(42,68,8,"+ "..hero.data.vitality_bonus,"char")
+		-- @x                  position x du rectangle
+		-- @y                  position y du rectangle
+		-- @width              largeur du rectangle
+		-- @height             hauteur du rectangle
+		-- @color(table)       couleur du rectangle
+		-- [@text]             texte du button
+		-- @context            le context de l'UI
+		creerUIText(5,78,15,"pt       "..hero.data.statsPoint,"char")
+		button = creerUIButton(90,80,15,10,{9,0,15,15}," =>","char")
+		button.state = "CHAR/1"
+		--<UI /char>
+		--<UI char/1>
+		-- data = {
+		-- 	name = "Jojoffrey",
+		-- 	class="warrior",
+		-- 	lvl = 1,
+		-- 	hp = 50,
+		-- 	mana = 20,
+		-- 	strength = 10,
+		-- 	magic = 10,
+		-- 	dexterity = 10,
+		-- 	vitality = 10,
+		-- 	hp_bonus = 0,
+		-- 	mana_bonus = 0,
+		-- 	strength_bonus = 0,
+		-- 	magic_bonus = 0,
+		-- 	dexterity_bonus = 0,
+		-- 	vitality_bonus = 0,
+		-- 	gold = 0,
+		-- 	armor_class = 0,
+		-- 	hit = 1,
+		-- 	damage = 0,
+		-- 	resistMagic = 0,
+		-- 	resistFire = 0,
+		-- 	resistLightning = 0,
+		-- 	currentExp = 0,
+		-- 	nextLevel = 300,
+		-- 	statsPoint = 0
+		-- }
+		creerUIPanel(0,0,111,94,0,"char/1")
+		creerUIPanel(0,0,110,93,3,"char/1")
+		creerUIText(2,3,15,"hp "..hero.data.current_hp.."/"..hero.data.hp,"char/1")
+		creerUIText(60,3,15,"mana "..hero.data.current_mana.."/"..hero.data.mana,"char/1")
+		creerUIText(2,20,15,"armor \nclass  "..hero.data.armor_class,"char/1")
+		creerUIText(60,20,15,"hit % "..(hero.data.hit * 100),"char/1")
+		creerUIText(60,30,15,"dmg "..hero.data.damage,"char/1")
+		creerUIText(2,40,15,"resist ","char/1")
+		creerUIText(2,50,15,"mag     "..(hero.data.resistMagic* 100).."%","char/1")
+		creerUIText(2,60,15,"fire    "..(hero.data.resistFire* 100).."%","char/1")
+		creerUIText(2,70,15,"light  "..(hero.data.resistLightning* 100).."%","char/1")
+
+		button = creerUIButton(90,80,15,10,{9,0,15,15}," <=","char/1")
+		button.state = "CHAR"
+		--<UI /char/1>
+
+		--<UI quest>
+		creerUIPanel(0,0,111,94,0,"quest")
+		creerUIPanel(0,0,110,93,3,"quest")
+		creerUIPanel(6,4,98,84,0,"quest")
+		button = creerUIButton(43,78,25,10,{0,0,15,13},"close","quest")
+		button.state = "BASE_MENU"
+		--<UI /quest>
+
+		--<UI map>
+		--<UI /map>
+
+		--<UI menu>
+		creerUIPanel(98,9,54,94,15,"menu")
+		creerUIPanel(99,10,52,92,0,"menu")
+		button = creerUIButton(113,22,17,15,{0,0,15,13},"save","menu")
+		button = creerUIButton(113,42,15,15,{0,0,15,13},"load","menu")
+		button = creerUIButton(113,62,22,15,{0,0,15,13},"option","menu")
+		button = creerUIButton(113,82,17,15,{0,0,15,13},"title","menu")
+		button.state ="TITLE"
+		--<UI /menu>
+
+		--<UI inv>
+		creerUIPanel(145,0,95,94,0,"inv")
+		creerUIPanel(146,0,95,93,3,"inv")
+		creerUIPanel(146,54,95,39,10,"inv")
+
+		creerUIPanel(185,0,19,19,10,"inv")
+		creerUIPanel(186,1,8,8,0,"inv")
+		creerUIPanel(195,1,8,8,0,"inv")
+		creerUIPanel(195,10,8,8,0,"inv")
+		creerUIPanel(186,10,8,8,0,"inv")
+
+
+		creerUIPanel(185,21,19,19,10,"inv")
+		creerUIPanel(186,22,8,8,0,"inv")
+		creerUIPanel(195,22,8,8,0,"inv")
+		creerUIPanel(195,31,8,8,0,"inv")
+		creerUIPanel(186,31,8,8,0,"inv")
+
+		creerUIPanel(163,21,19,19,10,"inv")
+		creerUIPanel(164,22,8,8,0,"inv")
+		creerUIPanel(173,22,8,8,0,"inv")
+		creerUIPanel(173,31,8,8,0,"inv")
+		creerUIPanel(164,31,8,8,0,"inv")
+
+		creerUIPanel(207,21,19,19,10,"inv")
+		creerUIPanel(208,22,8,8,0,"inv")
+		creerUIPanel(217,22,8,8,0,"inv")
+		creerUIPanel(217,31,8,8,0,"inv")
+		creerUIPanel(208,31,8,8,0,"inv")
+
+		creerUIPanel(172,42,10,10,10,"inv")
+		creerUIPanel(173,43,8,8,0,"inv")
+
+		creerUIPanel(207,42,10,10,10,"inv")
+		creerUIPanel(208,43,8,8,0,"inv")
+
+		creerUIPanel(207,8,10,10,10,"inv")
+		creerUIPanel(208,9,8,8,0,"inv")
+
+		for row = 1,4 do
+			for col = 1,10 do
+				creerUIPanel(148+(8* (col-1) +(col) ),55+(8*  (row-1) +(row) ),8,8,0,"inv")
+			end
 		end
+
+		-- creerUIText(146,1,15,"inv","inv")
+		--<UI /inv>
+
+		--<UI spells>
+		creerUIPanel(145,0,95,94,0,"spells")
+		creerUIPanel(146,0,95,93,3,"spells")
+		creerUIText(146,1,15,"spells","spells")
+		--<UI /spells>
+
+		-- @x           position x du text
+		-- @y           position y du text
+		-- @color       couleur du text
+		-- @text        texte du button
+		-- @context     le context de l'UI
+		-- creerUIText()
+
+		hero.tag = "hero"
+
+
+
 	end
-
-	-- creerUIText(146,1,15,"inv","inv")
-	--<UI /inv>
-
-	--<UI spells>
-	creerUIPanel(145,0,95,94,0,"spells")
-	creerUIPanel(146,0,95,93,3,"spells")
-	creerUIText(146,1,15,"spells","spells")
-	--<UI /spells>
-
-	-- @x           position x du text
-	-- @y           position y du text
-	-- @color       couleur du text
-	-- @text        texte du button
-	-- @context     le context de l'UI
-	-- creerUIText()
-
-	hero.tag = "hero"
 
 end
 
-
-init()
-
-
--- [*tic]
-function TIC()
-	-- local test = mapToScreen(hero.row,hero.col)
+-- [*TICGame]
+function TICGame()
 	x_map =52 -hero.x
 	y_map = 16 -hero.y
 	mx,my,md = mouse()
 	x2=mx
 	y2=my
 	local point = screenToMap(mx, my)
-
 	if  (md == true and path_already_loaded == false and y2 <=96 ) then
 		if(UI.currentState =="BASE_MENU") then
+
 			path_already_loaded = true
 			helping_box.col = point.x
 			helping_box.row = point.y
@@ -1026,55 +1129,7 @@ function TIC()
 
 	if (md == true and button_click_already == false) then
 		-- set the function ()
-		local _uiState = "BASE_MENU"
-
-		if(y2 >=96 and _uiState=="BASE_MENU") then
-			for i=1,#UI.baseMenu.button do
-				local button = UI.baseMenu.button[i]
-				local x = button.x
-				local y = button.y
-				local w = button.width
-				local h = button.height
-				if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
-					   if(button.state ~= nil) then
-						   changeUIbuttonState(button.state)
-						   button_click_already = true
-					   end
-				end
-
-			end
-		end
-
-		if(UI.currentState == "CHAR") then
-			_uiState = "char"
-		elseif (UI.currentState =="QUEST") then
-			_uiState = "quest"
-		elseif (UI.currentState =="INV") then
-			_uiState = "inv"
-		elseif (UI.currentState =="MENU") then
-			_uiState = "menu"
-		elseif (UI.currentState =="SPELLS") then
-			_uiState = "spells"
-		elseif (UI.currentState =="CHAR/1") then
-			_uiState = "char/1"
-		end
-		if(_uiState ~= "BASE_MENU") then
-			for i=1,#UI[_uiState].button do
-				local button = UI[_uiState].button[i]
-				local x = button.x
-				local y = button.y
-				local w = button.width
-				local h = button.height
-				if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
-					   if(button.state ~= nil) then
-						   changeUIbuttonState(button.state)
-						   button_click_already = true
-					   end
-				end
-
-			end
-		end
-
+		TICUpdateButton()
 	end
 
 	if (button_click_already == true) then
@@ -1112,18 +1167,13 @@ function TIC()
 	-- end
 	Sprites[1].col = x
 	Sprites[1].row = y
+
 	cls(2)
-	draw()
-	t=t+dt
-
-
 
 end
 
-
--- [*draw]
-function draw()
-
+-- [*drawGame]
+function drawGame()
 	for row=1,#map do
 		for col=1,#map[row] do
 			-- @col : index colonne
@@ -1136,16 +1186,379 @@ function draw()
 
 		end
 	end
-
-	-- for i,v in ipairs(path_tile) do
-	--      setTile(16,v.row,v.col,0)
-	-- end
-	--
-	-- for i,v in ipairs(path_tile_reverse) do
-	--      setTile(4,v.row,v.col,0)
-	-- end
 	draw_helping_box()
 	drawSprite()
+end
+
+-- [*OVRGame]
+function OVRGame()
+	rect(0,94,241,42,3)
+	line(0,93,241,93,0)
+	circ(64,97,17,6)
+	circb(64,97,17,16)
+	circ(182,97,17,8)
+	circb(182,97,17,16)
+	local diable_spr = {
+		{176,177,178,179,180,181,182},
+		{192,193,194,195,196,197,198},
+		{208,209,210,211,212,213,214},
+		{224,225,226,227,228,229,230},
+		{240,241,242,243,244,245,246},
+		{256,257,258,259,260,261,262},
+	}
+
+	local angel_spr = {
+		{272,273,274,275,276},
+		{288,289,290,291,292},
+		{304,305,306,307,308},
+		{320,321,322,323,324},
+		{336,337,338,339,340}
+	}
+
+	for y=1,#diable_spr do
+		for x=1,#diable_spr[y] do
+			spr(diable_spr[y][x],30 + x*8,86 + y*8,5)
+		end
+	end
+
+	for y=1,#angel_spr do
+		for x=1,#angel_spr[y] do
+			spr(angel_spr[y][x],155 + x*8,88 + y*8,5)
+		end
+	end
+
+	generateUIEvent()
+end
+
+
+
+-- [*TICTitle]
+function TICTitle()
+	mx,my,md = mouse()
+	x2=mx
+	y2=my
+	if(md == true) then
+	   TICUpdateButton()
+	end
+	poke(0x3FFB,8)
+
+	cls(1)
+end
+
+-- [*initTitle]
+function initTitle()
+	-- @x                  position x du rectangle
+	-- @y                  position y du rectangle
+	-- @width              largeur du rectangle
+	-- @height             hauteur du rectangle
+	-- @color(table)       couleur du rectangle (colorbutton = 1;colorbuttonHover = 2;colorText = 3;colorTextHover = 4)
+	-- [@text]             texte du button
+	-- @context            le context de l'UI
+	UI.currentState="TITLE_MENU"
+	if(isAlreadyLoaded.TITLE==false) then
+
+
+
+		--<UI titleMenu>
+		local button = creerUIButton(100,62,45,10,{0,0,15,13}," start game","titleMenu")
+		button.state = "TITLE_MENU/START_GAME"
+		button = creerUIButton(100,75,45,10,{0,0,15,13},"     credit","titleMenu")
+		button = creerUIButton(100,88,45,10,{0,0,15,13},"      quit","titleMenu")
+		--<UI /titleMenu>
+
+		-- @x           position x du text
+		-- @y           position y du text
+		-- @color       couleur du text
+		-- @pText        texte
+		-- @context     le context de l'UI
+		--<UI titleMenu/startGame>
+		creerUIText(140,47,15,"select char","titleMenu/startGame")
+		button = creerUIButton(200,126,34,10,{1,1,15,13}," cancel","titleMenu/startGame")
+		button.state = "TITLE_MENU"
+		button = creerUIButton(141,126,34,10,{1,1,15,13}," delete","titleMenu/startGame")
+		button = creerUIButton(89,126,34,10,{1,1,15,13}," ok","titleMenu/startGame")
+		button.state = "GAME"
+		-- @x                  position x du dialogBox
+		-- @y                  position y du dialogBox
+		-- @col                nombre de sprite au niveau de la colonne
+		-- @row                nombre de sprite au niveau de la ligne
+		-- @context            le context de l'UI
+		creerDialogueBox(1,32,9,3,"titleMenu/startGame")
+		creerDialogueBox(1,59,9,8,"titleMenu/startGame")
+		creerDialogueBox(75,53,19,8,"titleMenu/startGame")
+		creerDialogueBox(75,32,19,3,"titleMenu/startGame")
+
+		--</UI titleMenu/startGame>
+
+
+	end
+
+end
+
+-- [*drawTitle]
+function drawTitle()
+	--(x,y,col,row)
+end
+
+-- [*OVRTitle]
+function OVRTitle()
+	if(UI.currentState == "TITLE_MENU/START_GAME") then
+		local thief_spr = {
+			{352,353,354,355,356,357,358,359},
+			{368,369,370,371,372,373,374,375},
+			{384,385,386,387,388,389,390,391},
+		}
+
+		for row=1,#thief_spr do
+			for col=1,#thief_spr[row] do
+			   spr(thief_spr[row][col],5 + col*8,34 + row*8,0)
+			end
+		end
+	end
+	generateUIEvent()
+end
+
+--[*changeGameState]
+function changeGameState(state)
+		gameState = state
+		init()
+		isAlreadyLoaded[state] = true
+end
+
+-- [*init]
+function init()
+
+	if(gameState == "GAME") then
+	    initGame()
+    	elseif(gameState =="TITLE") then
+	    initTitle()
+	end
+end
+
+
+init()
+isAlreadyLoaded.TITLE = true
+--[*generateUIEvent]
+function generateUIEvent()
+	-- baseMenu=
+	-- char=
+	-- menu=
+	-- inv=
+	-- skills=
+	-- quest=
+	-- BASE_MENU
+	-- CHAR
+	-- MAP
+	-- MENU
+	-- SPELL
+	-- QUEST
+	-- INV
+	--<UI baseMenu>
+	if(gameState == "GAME") then
+		for i=1,#UI.baseMenu.panel do
+			local panel = UI.baseMenu.panel[i]
+			local x = panel.x
+			local y = panel.y
+			local w = panel.width
+			local h = panel.height
+			local c = panel.color
+			rect(x,y,w,h,c)
+		end
+
+		for i=1,#UI.baseMenu.button do
+			local button = UI.baseMenu.button[i]
+			local x = button.x
+			local y = button.y
+			local w = button.width
+			local h = button.height
+			local cR = button.color
+			local cT = button.colorText
+			local text = button.text
+			if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
+			   cR = button.colorHover
+			   cT = button.colorTextHover
+			end
+			rect(x,y,w,h,cR)
+			print(text,x+1,y+1,cT,false,1,true)
+		end
+		for i=1,#UI.baseMenu.text do
+			local textUI = UI.baseMenu.text[i]
+			local x = textUI.x
+			local y = textUI.y
+			local text = textUI.text
+			print(text,x+1,y+1,15,false,1,true)
+			-- rect(x,y,w,h,c)
+		end
+	end
+
+	--</UI baseMenu>
+
+local _uiState = "BASE_MENU"
+if(UI.currentState == "CHAR") then
+	_uiState = "char"
+elseif (UI.currentState =="QUEST") then
+	_uiState = "quest"
+elseif (UI.currentState =="INV") then
+	_uiState = "inv"
+elseif (UI.currentState =="MENU") then
+	_uiState = "menu"
+elseif (UI.currentState =="SPELLS") then
+	_uiState = "spells"
+elseif (UI.currentState =="CHAR/1") then
+	_uiState = "char/1"
+elseif (UI.currentState =="TITLE_MENU") then
+	_uiState = "titleMenu"
+elseif (UI.currentState =="TITLE_MENU/START_GAME") then
+	_uiState = "titleMenu/startGame"
+elseif (UI.currentState =="TITLE_MENU/CREDIT") then
+	_uiState = "titleMenu/credit"
+end
+	if(_uiState ~= "BASE_MENU") then
+		for i=1,#UI[_uiState].panel do
+			local panel = UI[_uiState].panel[i]
+			local x = panel.x
+			local y = panel.y
+			local w = panel.width
+			local h = panel.height
+			local c = panel.color
+			rect(x,y,w,h,c)
+		end
+		for i=1,#UI[_uiState].button do
+			local button = UI[_uiState].button[i]
+			local x = button.x
+			local y = button.y
+			local w = button.width
+			local h = button.height
+			local cR = button.color
+			local cT = button.colorText
+			local text = button.text
+			if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
+			   cR = button.colorHover
+			   cT = button.colorTextHover
+			end
+			rect(x,y,w,h,cR)
+			print(text,x+1,y+1,cT,false,1,true)
+		end
+		for i=1,#UI[_uiState].text do
+			local textUI = UI[_uiState].text[i]
+			local x = textUI.x
+			local y = textUI.y
+			local text = textUI.text
+			local c = textUI.color
+			print(text,x+1,y+1,c,false,1,true)
+		end
+
+		for i=1,#UI[_uiState].dBox do
+			local dBox = UI[_uiState].dBox[i]
+			local x = dBox.x
+			local y = dBox.y
+			local col = dBox.col
+			local row = dBox.row
+			drawDialogBox(x,y,col,row)
+		end
+
+	end
+	if(UI.currentState == "MAP") then
+		--<UI map>
+		-- enter the function
+		--</UI map>
+
+	end
+
+
+
+	-- spr(114,93,94,0)
+
+
+
+	spr(100,x2,y2,5,SCALE);
+
+
+
+end
+
+--[*TICUpdateButton]
+function TICUpdateButton()
+	local _uiState = "BASE_MENU"
+	if(y2 >=96 and _uiState=="BASE_MENU") then
+		for i=1,#UI.baseMenu.button do
+			local button = UI.baseMenu.button[i]
+			local x = button.x
+			local y = button.y
+			local w = button.width
+			local h = button.height
+			if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
+				   if(button.state ~= nil) then
+					   changeUIbuttonState(button.state)
+					   button_click_already = true
+				   end
+			end
+
+		end
+	end
+
+	if(UI.currentState == "CHAR") then
+		_uiState = "char"
+	elseif (UI.currentState =="QUEST") then
+		_uiState = "quest"
+	elseif (UI.currentState =="INV") then
+		_uiState = "inv"
+	elseif (UI.currentState =="MENU") then
+		_uiState = "menu"
+	elseif (UI.currentState =="SPELLS") then
+		_uiState = "spells"
+	elseif (UI.currentState =="CHAR/1") then
+		_uiState = "char/1"
+	elseif (UI.currentState =="TITLE_MENU") then
+		_uiState = "titleMenu"
+	elseif (UI.currentState =="TITLE_MENU/START_GAME") then
+		_uiState = "titleMenu/startGame"
+	elseif (UI.currentState =="TITLE_MENU/CREDIT") then
+		_uiState = "titleMenu/credit"
+	end
+	if(_uiState ~= "BASE_MENU") then
+		for i=1,#UI[_uiState].button do
+			local button = UI[_uiState].button[i]
+			local x = button.x
+			local y = button.y
+			local w = button.width
+			local h = button.height
+			if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
+				   if(button.state ~= nil) then
+					   if(button.state =="GAME" or button.state=="TITLE") then
+						   changeGameState(button.state)
+					   else
+						   changeUIbuttonState(button.state)
+					   end
+					   button_click_already = true
+				   end
+			end
+
+		end
+	end
+
+end
+
+-- [*tic]
+function TIC()
+	-- local test = mapToScreen(hero.row,hero.col)
+	if(gameState =="GAME") then
+	TICGame()
+	elseif(gameState=="TITLE") then
+	TICTitle()
+	end
+	t=t+dt
+	draw()
+end
+
+
+-- [*draw]
+function draw()
+	if(gameState =="GAME") then
+		drawGame()
+	elseif(gameState=="TITLE") then
+		drawTitle()
+	end
 end
 
 -- [*drawSprite]
@@ -1241,166 +1654,15 @@ end
 
 -- [*OVR]
 function OVR()
-	rect(0,94,241,42,3)
-	line(0,93,241,93,0)
-	circ(64,97,17,6)
-	circb(64,97,17,16)
-	circ(182,97,17,8)
-	circb(182,97,17,16)
-	local diable_spr = {
-		{176,177,178,179,180,181,182},
-		{192,193,194,195,196,197,198},
-		{208,209,210,211,212,213,214},
-		{224,225,226,227,228,229,230},
-		{240,241,242,243,244,245,246},
-		{256,257,258,259,260,261,262},
-	}
-
-	local angel_spr = {
-		{272,273,274,275,276},
-		{288,289,290,291,292},
-		{304,305,306,307,308},
-		{320,321,322,323,324},
-		{336,337,338,339,340}
-	}
-
-	for y=1,#diable_spr do
-		for x=1,#diable_spr[y] do
-			spr(diable_spr[y][x],30 + x*8,86 + y*8,5)
-		end
+	if(gameState=="GAME") then
+	OVRGame()
+	elseif(gameState=="TITLE") then
+	OVRTitle()
 	end
-
-	for y=1,#angel_spr do
-		for x=1,#angel_spr[y] do
-			spr(angel_spr[y][x],155 + x*8,88 + y*8,5)
-		end
-	end
-
-	-- baseMenu=
-	-- char=
-	-- menu=
-	-- inv=
-	-- skills=
-	-- quest=
-	-- BASE_MENU
-	-- CHAR
-	-- MAP
-	-- MENU
-	-- SPELL
-	-- QUEST
-	-- INV
-	--<UI baseMenu>
-	for i=1,#UI.baseMenu.panel do
-		local panel = UI.baseMenu.panel[i]
-		local x = panel.x
-		local y = panel.y
-		local w = panel.width
-		local h = panel.height
-		local c = panel.color
-		rect(x,y,w,h,c)
-	end
-
-	for i=1,#UI.baseMenu.button do
-		local button = UI.baseMenu.button[i]
-		local x = button.x
-		local y = button.y
-		local w = button.width
-		local h = button.height
-		local cR = button.color
-		local cT = button.colorText
-		local text = button.text
-		if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
-		   cR = button.colorHover
-		   cT = button.colorTextHover
-		end
-		rect(x,y,w,h,cR)
-		print(text,x+1,y+1,cT,false,1,true)
-	end
-	for i=1,#UI.baseMenu.text do
-		local textUI = UI.baseMenu.text[i]
-		local x = textUI.x
-		local y = textUI.y
-		local text = textUI.text
-		print(text,x+1,y+1,15,false,1,true)
-		-- rect(x,y,w,h,c)
-	end
-	--</UI baseMenu>
-
-local _uiState = "BASE_MENU"
-if(UI.currentState == "CHAR") then
-	_uiState = "char"
-elseif (UI.currentState =="QUEST") then
-	_uiState = "quest"
-elseif (UI.currentState =="INV") then
-	_uiState = "inv"
-elseif (UI.currentState =="MENU") then
-	_uiState = "menu"
-elseif (UI.currentState =="SPELLS") then
-	_uiState = "spells"
-elseif (UI.currentState =="CHAR/1") then
-	_uiState = "char/1"
-end
-	if(_uiState ~= "BASE_MENU") then
-		for i=1,#UI[_uiState].panel do
-			local panel = UI[_uiState].panel[i]
-			local x = panel.x
-			local y = panel.y
-			local w = panel.width
-			local h = panel.height
-			local c = panel.color
-			rect(x,y,w,h,c)
-		end
-		for i=1,#UI[_uiState].button do
-			local button = UI[_uiState].button[i]
-			local x = button.x
-			local y = button.y
-			local w = button.width
-			local h = button.height
-			local cR = button.color
-			local cT = button.colorText
-			local text = button.text
-			if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
-			   cR = button.colorHover
-			   cT = button.colorTextHover
-			end
-			rect(x,y,w,h,cR)
-			print(text,x+1,y+1,cT,false,1,true)
-		end
-		for i=1,#UI[_uiState].text do
-			local textUI = UI[_uiState].text[i]
-			local x = textUI.x
-			local y = textUI.y
-			local text = textUI.text
-			local c = textUI.color
-			print(text,x+1,y+1,c,false,1,true)
-		end
-
-	end
-	if(UI.currentState == "MAP") then
-		--<UI map>
-		-- enter the function
-		--</UI map>
-
-	end
-
-
-
-	-- spr(114,93,94,0)
-
-
-
-	spr(100,x2,y2,5,SCALE);
-
-
-
 end
 
 
--- [*switchPal]
-function switchPal(c0,c1)
-	if(c0==nil and c1==nil)then for i=0,15 do poke4(0x3FF0*2+i,i)end
-	else poke4(0x3FF0*2+c0,c1)end
-end
+
 
 -- [*outLineSprite]
 function outLineSprite(i,x,y,pAlpha)
