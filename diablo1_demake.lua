@@ -122,92 +122,168 @@ character ={
 	--[1]
 	-- priest
 	{
+		widthFrame=1,
+		heightFrame=1,
+		bank=0,
 		color ={
 			skin = 12,
 			shirt = 15,
 			pant = 15
+		},
+		animation={
+			idle={
+				{12},
+			}
 		}
 	},
 	--[2]
 	-- demon
 	{
+		widthFrame=1,
+		heightFrame=1,
+		bank=0,
 		color ={
 			skin = 6,
 			shirt = 6,
 			pant = 6
+		},
+		animation={
+			idle={
+				{12},
+			}
 		}
 	},
 	--[3]
 	-- goblin
 	{
+		widthFrame=1,
+		heightFrame=1,
+		bank=0,
 		color ={
 			skin = 11,
 			shirt = 11,
 			pant = 4,
 			alpha = 2
+		},
+		animation={
+			idle={
+				{12},
+			}
 		}
 	},
 	--[4]
 	-- witch
 	{
+		widthFrame=1,
+		heightFrame=1,
+		bank=0,
 		color ={
 			skin = 15,
 			shirt = 1,
 			pant = 1
+		},
+		animation={
+			idle={
+				{12},
+			}
 		}
 	},
 	--[5]
 	-- blacksmith
 	{
+		widthFrame=1,
+		heightFrame=1,
+		bank=0,
 		color ={
 			skin = 12,
 			shirt = 4,
 			pant = 3
+		},
+		animation={
+			idle={
+				{12},
+			}
 		}
 	},
 	--[6]
 	-- drunkyard
 	{
+		widthFrame=1,
+		heightFrame=1,
+		bank=0,
 		color ={
 			skin = 12,
 			shirt = 5,
 			pant = 4
+		},
+		animation={
+			idle={
+				{12},
+			}
 		}
 	},
 	--[7]
 	-- blue man
 	{
+		widthFrame=1,
+		heightFrame=1,
+		bank=0,
 		color ={
 			skin = 12,
 			shirt = 2,
 			pant = 3
+		},
+		animation={
+			idle={
+				{12},
+			}
 		}
 	},
 	--[8]
 	-- knight
 	{
+		widthFrame=1,
+		heightFrame=1,
+		bank=0,
 		color ={
 			skin = 12,
 			shirt = 7,
 			pant = 3
+		},
+		animation={
+			idle={
+				{12},
+			}
 		}
 	},
 	--[9]
 	-- girl with yellow robe
 	{
+		widthFrame=1,
+		heightFrame=1,
+		bank=0,
 		color ={
 			skin = 12,
 			shirt = 14,
 			pant = 14
+		},
+		animation={
+			idle={
+				{12},
+			}
 		}
 	},
 	--[10]
-	-- hero
+	-- hero warrior
 	{
+		widthFrame=2,
+		heightFrame=2,
+		bank=1,
 		color ={
 			skin = 12,
 			shirt = 4,
-			pant = 6
+			pant = 6,
+			alpha = 5
 		},
 		data = {
 			name = "Jojoffrey",
@@ -237,6 +313,23 @@ character ={
 			currentExp = 0,
 			nextLevel = 300,
 			statsPoint = 0
+		},
+		animation={
+			idle={
+				{32,33,48,49},
+				{36,37,52,53}
+			},
+			move={
+				{32,33,48,49},
+				{34,35,50,51}
+			},
+			attack={
+				{38,39,54,55},
+				{40,41,56,57}
+			},
+			shoot={
+				{42,43,58,59}
+			}
 		}
 	},
 }
@@ -285,19 +378,19 @@ function drawDialogBox(x,y,col,row)
 end
 
 -- [*creerSprite]
-function creerSprite(index,col,row,pAlpha,xOffset,yOffset,tag,pColor)
+function creerSprite(data,col,row,pAlpha,xOffset,yOffset,tag,pColor)
 
--- @i             index du sprite utilise
+-- @data          data du sprite utilise
+-- @data.color       = couleur utilise
+-- @data.animation   = animation utilise
 -- @row           position x du sprite(en ligne)
 -- @col           position y du sprite(en colonne)
 -- [@pAlpha]      Couleur alpha utilise
 -- [@xOffset]     Position de decalage x
 -- [@yOffset]     Position de decalage y
 -- [@tag]         tag du sprite
--- [@pColor]       color custom du sprite
 
  local sprite = {}
-sprite.i = index
 sprite.timeFrame = 0
 sprite.currentFrame=1
 sprite.currentAnimation = "idle"
@@ -312,7 +405,9 @@ sprite.moveVitesseCounter = 0
 sprite.pointSquareDestination = {}
 sprite.distanceSquareDestination = {x=0,y=0}
 sprite.pointDistanceStep = {x=0,y=0}
-
+sprite.widthFrame = data.widthFrame
+sprite.heightFrame = data.heightFrame
+sprite.bank = data.bank
 if(pColor ~= nil) then
 sprite.color = {
 	skin = pColor.skin,
@@ -370,11 +465,7 @@ sprite.followPath = function()
 	end
 end
 sprite.animation = {
-
-	moveAnimation = {
-		idle={12},
-		move={13,14}
-	},
+	moveAnimation = {},
 	setMotion = function()
 		local a = sprite.animation.moveAnimation[sprite.currentAnimation]
 		sprite.timeFrame = sprite.timeFrame + dt
@@ -392,6 +483,12 @@ sprite.animation = {
 		end
 	end
 }
+if(data.animation ~= nil) then
+	for k,v in pairs(data.animation) do
+		sprite.animation.moveAnimation[k]=v
+	end
+end
+sprite.i= sprite.animation.moveAnimation[sprite.currentAnimation]
 sprite.direction = "right"
 if pAlpha == nil then
    sprite.pAlpha = 0
@@ -509,7 +606,6 @@ end
 
 --[*changeUIbuttonState]
 function changeUIbuttonState(state)
-	trace(state)
 	if(UI.currentState ~= state) then
 	UI.currentState = state
 	else
@@ -876,16 +972,16 @@ function initGame()
 		-- [@yOffset]     Position de decalage y
 		-- [@tag]         tag du sprite
 		-- [@pColor]       color custom du sprite
-		hero = creerSprite(12,1,1,nil,nil,nil,"hero")
-		creerSprite(12,2,1,nil,nil,nil,"npc",character[1].color)
-		creerSprite(12,3,1,nil,nil,nil,"npc",character[2].color)
-		creerSprite(12,4,1,nil,nil,nil,"npc",character[3].color)
-		creerSprite(12,5,1,nil,nil,nil,"npc",character[4].color)
-		creerSprite(12,6,1,nil,nil,nil,"npc",character[5].color)
-		creerSprite(12,7,1,nil,nil,nil,"npc",character[6].color)
-		creerSprite(12,8,1,nil,nil,nil,"npc",character[7].color)
-		creerSprite(12,9,1,nil,nil,nil,"npc",character[8].color)
-		creerSprite(12,10,1,nil,nil,nil,"npc",character[9].color)
+		hero = creerSprite(character[10],1,1,nil,nil,nil,"hero",character[10].color)
+		creerSprite(character[1],2,1,nil,nil,nil,"npc",character[1].color)
+		creerSprite(character[2],3,1,nil,nil,nil,"npc",character[2].color)
+		creerSprite(character[3],4,1,nil,nil,nil,"npc",character[3].color)
+		creerSprite(character[4],5,1,nil,nil,nil,"npc",character[4].color)
+		creerSprite(character[5],6,1,nil,nil,nil,"npc",character[5].color)
+		creerSprite(character[6],7,1,nil,nil,nil,"npc",character[6].color)
+		creerSprite(character[7],8,1,nil,nil,nil,"npc",character[7].color)
+		creerSprite(character[8],9,1,nil,nil,nil,"npc",character[8].color)
+		creerSprite(character[9],10,1,nil,nil,nil,"npc",character[9].color)
 
 		-- @x              position x du rectangle
 		-- @y              position y du rectangle
@@ -1586,7 +1682,18 @@ function drawSprite()
 			end
 
 		end
-		spr(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha,SCALE)
+
+		-- set the sprite
+		sync(1,sprite.bank,false)
+		for h = 1,sprite.heightFrame do
+			for w = 1,sprite.widthFrame do
+				spr(i[h*w], (x_map+ sprite.x )* SCALE + x_offset + (8*(w -1)*SCALE ),( y_map+sprite.y ) * SCALE + y_offset+ (8*(h -1) *SCALE ),pAlpha,SCALE)
+			end
+		end
+		--spr(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha,SCALE)
+		-- sync(1,0,false)
+
+
 		if(sprite.color ~= nil) then
 			switchPal(12,12)
 			switchPal(4,4)
