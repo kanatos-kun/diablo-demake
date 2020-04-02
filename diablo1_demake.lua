@@ -27,12 +27,15 @@
 -- [*initTitle]
 -- [*drawTitle]
 -- [*OVRTitle]
---[*generateUIEvent]
---[*TICUpdateButton]
---[*memoryFunction]
---[*drawDialogBox]
---[*creerDialogueBox]
---[*changeGameState]
+-- [*generateUIEvent]
+-- [*TICUpdateButton]
+-- [*memoryFunction]
+--[*memorySaveCharacter]
+--[*memoryLoadCharacter]
+-- [*drawDialogBox]
+-- [*creerDialogueBox]
+-- [*changeGameState]
+-- [*reduxUIFnt]
 --help block:
 --<UI basemenu>
 --<UI char>
@@ -44,9 +47,10 @@
 --<UI spells>
 --<UI titleMenu>
 --<UI titleMenu/startGame>
+--</UI titleMenu/startGame/newHero>
+--<UI titleMenu/startGame/newHero/name>
 
 
-sync(0,0,false)
 dt = 1/60
 t=0
 x_map=52
@@ -94,8 +98,8 @@ UI = {
 	spells={ button={},panel={},text={},dBox={}  },
 	quest={ button={},panel={},text={},dBox={}  },
 	titleMenu={ button={},panel={},text={},dBox={}  },
-	["titleMenu/startGame"]={ button={},panel={},text={},dBox={}  },
-
+	["titleMenu/startGame"]={ button={},panel={},text={},dBox={},currentChoice=0,isCreated=false,selectedButton={}  },
+	["titleMenu/startGame/newHero"]={ button={},panel={},text={},dBox={},currentChoice=0,selectedButton={}  },
 	currentState = "BASE_MENU"
 	-- BASE_MENU
 	-- CHAR
@@ -124,7 +128,7 @@ character ={
 	{
 		widthFrame=1,
 		heightFrame=1,
-		bank=0,
+		bank=1,
 		color ={
 			skin = 12,
 			shirt = 15,
@@ -132,7 +136,7 @@ character ={
 		},
 		animation={
 			idle={
-				{12},
+				{16},
 			}
 		}
 	},
@@ -141,7 +145,7 @@ character ={
 	{
 		widthFrame=1,
 		heightFrame=1,
-		bank=0,
+		bank=1,
 		color ={
 			skin = 6,
 			shirt = 6,
@@ -149,7 +153,7 @@ character ={
 		},
 		animation={
 			idle={
-				{12},
+				{16},
 			}
 		}
 	},
@@ -158,7 +162,7 @@ character ={
 	{
 		widthFrame=1,
 		heightFrame=1,
-		bank=0,
+		bank=1,
 		color ={
 			skin = 11,
 			shirt = 11,
@@ -167,7 +171,7 @@ character ={
 		},
 		animation={
 			idle={
-				{12},
+				{16},
 			}
 		}
 	},
@@ -176,7 +180,7 @@ character ={
 	{
 		widthFrame=1,
 		heightFrame=1,
-		bank=0,
+		bank=1,
 		color ={
 			skin = 15,
 			shirt = 1,
@@ -184,7 +188,7 @@ character ={
 		},
 		animation={
 			idle={
-				{12},
+				{16},
 			}
 		}
 	},
@@ -193,7 +197,7 @@ character ={
 	{
 		widthFrame=1,
 		heightFrame=1,
-		bank=0,
+		bank=1,
 		color ={
 			skin = 12,
 			shirt = 4,
@@ -201,7 +205,7 @@ character ={
 		},
 		animation={
 			idle={
-				{12},
+				{16},
 			}
 		}
 	},
@@ -210,7 +214,7 @@ character ={
 	{
 		widthFrame=1,
 		heightFrame=1,
-		bank=0,
+		bank=1,
 		color ={
 			skin = 12,
 			shirt = 5,
@@ -218,7 +222,7 @@ character ={
 		},
 		animation={
 			idle={
-				{12},
+				{16},
 			}
 		}
 	},
@@ -227,7 +231,7 @@ character ={
 	{
 		widthFrame=1,
 		heightFrame=1,
-		bank=0,
+		bank=1,
 		color ={
 			skin = 12,
 			shirt = 2,
@@ -235,7 +239,7 @@ character ={
 		},
 		animation={
 			idle={
-				{12},
+				{16},
 			}
 		}
 	},
@@ -244,7 +248,7 @@ character ={
 	{
 		widthFrame=1,
 		heightFrame=1,
-		bank=0,
+		bank=1,
 		color ={
 			skin = 12,
 			shirt = 7,
@@ -252,7 +256,7 @@ character ={
 		},
 		animation={
 			idle={
-				{12},
+				{16},
 			}
 		}
 	},
@@ -261,7 +265,7 @@ character ={
 	{
 		widthFrame=1,
 		heightFrame=1,
-		bank=0,
+		bank=1,
 		color ={
 			skin = 12,
 			shirt = 14,
@@ -269,7 +273,7 @@ character ={
 		},
 		animation={
 			idle={
-				{12},
+				{16},
 			}
 		}
 	},
@@ -287,16 +291,134 @@ character ={
 		},
 		data = {
 			name = "Jojoffrey",
-			class="warrior",
+			class=10,
 			lvl = 1,
 			hp = 50,
 			current_hp = 50,
 			mana = 20,
 			current_mana = 20,
-			strength = 10,
-			magic = 10,
-			dexterity = 10,
-			vitality = 10,
+			strength = 30,
+		            magic = 10,
+		            dexterity = 20,
+		            vitality = 25,
+			hp_bonus = 0,
+			mana_bonus = 0,
+			strength_bonus = 0,
+			magic_bonus = 0,
+			dexterity_bonus = 0,
+			vitality_bonus = 0,
+			gold = 0,
+			armor_class = 2,
+			hit = 1,
+			damage = 0,
+			resistMagic = 0,
+			resistFire = 0,
+			resistLightning = 0,
+			currentExp = 0,
+			nextLevel = 300,
+			statsPoint = 0
+		},
+		animation={
+			idle={
+				{96,97,112,113},
+				{100,101,116,117}
+			},
+			move={
+				{96,97,112,113},
+				{98,99,114,115}
+			},
+			attack={
+				{38,39,54,55},
+				{40,41,56,57}
+			},
+			shoot={
+				{42,43,58,59}
+			}
+		}
+	},
+	--[11]
+	-- hero hunter
+	{
+		widthFrame=2,
+		heightFrame=2,
+		bank=1,
+		color ={
+			skin = 12,
+			shirt = 4,
+			pant = 6,
+			alpha = 5
+		},
+		data = {
+			name = "Jojoffrey",
+			class=11,
+			lvl = 1,
+			hp = 50,
+			current_hp = 50,
+			mana = 20,
+			current_mana = 20,
+			strength = 20,
+		            magic = 15,
+		            dexterity = 30,
+		            vitality = 20,
+			hp_bonus = 0,
+			mana_bonus = 0,
+			strength_bonus = 0,
+			magic_bonus = 0,
+			dexterity_bonus = 0,
+			vitality_bonus = 0,
+			gold = 0,
+			armor_class = 1,
+			hit = 1,
+			damage = 0,
+			resistMagic = 0,
+			resistFire = 0,
+			resistLightning = 0,
+			currentExp = 0,
+			nextLevel = 300,
+			statsPoint = 0
+		},
+		animation={
+			idle={
+				{128,129,144,145},
+				{132,133,148,149}
+			},
+			move={
+				{128,129,144,145},
+				{130,131,146,147}
+			},
+			attack={
+				{38,39,54,55},
+				{40,41,56,57}
+			},
+			shoot={
+				{42,43,58,59}
+			}
+		}
+	},
+	--[12]
+	-- hero sorcerer
+	{
+		widthFrame=2,
+		heightFrame=2,
+		bank=1,
+		color ={
+			skin = 12,
+			shirt = 4,
+			pant = 6,
+			alpha = 5
+		},
+		data = {
+			name = "Jojoffrey",
+			class=12,
+			lvl = 1,
+			hp = 50,
+			current_hp = 50,
+			mana = 20,
+			current_mana = 20,
+			strength = 15,
+		            magic = 35,
+		            dexterity = 15,
+		            vitality = 20,
 			hp_bonus = 0,
 			mana_bonus = 0,
 			strength_bonus = 0,
@@ -316,12 +438,12 @@ character ={
 		},
 		animation={
 			idle={
-				{32,33,48,49},
-				{36,37,52,53}
+				{160,161,176,177},
+				{164,165,180,181}
 			},
 			move={
-				{32,33,48,49},
-				{34,35,50,51}
+				{160,161,176,177},
+				{162,163,178,179}
 			},
 			attack={
 				{38,39,54,55},
@@ -334,19 +456,153 @@ character ={
 	},
 }
 --[*memoryFunction]
-pmem("a","22")
-pmem("hp",50)
--- if(pmem(0) == nil) then
--- 	pmem(0,0)
--- else
--- 	pmem(0,pmem(0)+1)
--- end
-trace(pmem("hp") )
+--[*memorySaveCharacter]
+function memorySaveCharacter(data)
+	pmem(0,data.class)
+	pmem(1,data.lvl)
+	pmem(2,data.hp)
+	pmem(3,data.current_hp)
+	pmem(4,data.mana)
+	pmem(5,data.current_mana)
+	pmem(6,data.strength)
+	pmem(7,data.magic)
+	pmem(8,data.dexterity)
+	pmem(9,data.vitality)
+
+	pmem(10,data.hp_bonus)
+	pmem(11,data.mana_bonus)
+	pmem(12,data.strength_bonus)
+	pmem(13,data.magic_bonus)
+	pmem(14,data.dexterity_bonus)
+	pmem(15,data.vitality_bonus)
+
+	pmem(16,data.gold)
+	pmem(17,data.hit)
+	pmem(18,data.damage)
+	pmem(19,data.armor_class)
+	pmem(20,data.resistMagic)
+	pmem(21,data.resistFire)
+	pmem(22,data.resistLightning)
+
+	pmem(23,data.currentExp)
+	pmem(24,data.nextLevel)
+	pmem(25,data.statsPoint)
+	--pos x
+	pmem(26,0)
+	--pos y
+	pmem(27,0)
+
+	trace(pmem(0))
+end
+
+--[*memoryLoadCharacter]
+function memoryLoadCharacter()
+	local data = {}
+	if(pmem(0)== 10) then --warrior
+	data.class = "warrior"
+	elseif (pmem(0) == 11) then --hunter
+	data.class = "rogue"
+	else --sorcerer
+	data.class = "sorcerer"
+	end
+	data.lvl=pmem(1)
+	data.hp=pmem(2)
+	data.current_hp=pmem(3)
+	data.mana=pmem(4)
+	data.current_mana=pmem(5)
+	data.strength=pmem(6)
+	data.magic=pmem(7)
+	data.dexterity=pmem(8)
+	data.vitality=pmem(9)
+
+	data.hp_bonus=pmem(10)
+	data.mana_bonus=pmem(11)
+	data.strength_bonus=pmem(12)
+	data.magic_bonus=pmem(13)
+	data.dexterity_bonus=pmem(14)
+	data.vitality_bonus=pmem(15)
+
+	data.gold=pmem(16)
+	data.hit=pmem(17)
+	data.damage=pmem(18)
+	data.armor_class=pmem(19)
+	data.resistMagic=pmem(20)
+	data.resistFire=pmem(21)
+	data.resistLightning=pmem(22)
+
+	data.currentExp=pmem(23)
+	data.nextLevel=pmem(24)
+	data.statsPoint=pmem(25)
+	data.x=pmem(26)
+	data.y=pmem(27)
+	return data
+end
+
+-- hero warrior = character[10]
+-- hero hunter = character[11]
+-- hero sorcerer = character[12]
+----------------------------
+-- class
+-- lvl
+-- hp
+-- current_hp
+-- mana
+-- current_mana
+-- strength
+-- magic
+-- dexterity
+-- vitality
+
+-- hp_bonus
+-- mana_bonus
+-- strength_bonus
+-- magic_bonus
+-- dexterity_bonus
+-- vitality_bonus
+--armor_class
+
+-- gold
+-- hit
+-- damage
+-- resistMagic
+-- resistFire
+-- resistLightning
+
+-- currentExp
+-- nextLevel
+-- statsPoint
 
 -- [*switchPal]
 function switchPal(c0,c1)
 	if(c0==nil and c1==nil)then for i=0,15 do poke4(0x3FF0*2+i,i)end
 	else poke4(0x3FF0*2+c0,c1)end
+end
+
+-- [*reduxUIFnt]
+function reduxUIFnt()
+local _uiState = "BASE_MENU"
+	if(UI.currentState == "CHAR") then
+		_uiState = "char"
+	elseif (UI.currentState =="QUEST") then
+		_uiState = "quest"
+	elseif (UI.currentState =="INV") then
+		_uiState = "inv"
+	elseif (UI.currentState =="MENU") then
+		_uiState = "menu"
+	elseif (UI.currentState =="SPELLS") then
+		_uiState = "spells"
+	elseif (UI.currentState =="CHAR/1") then
+		_uiState = "char/1"
+	elseif (UI.currentState =="TITLE_MENU") then
+		_uiState = "titleMenu"
+	elseif (UI.currentState =="TITLE_MENU/START_GAME") then
+		_uiState = "titleMenu/startGame"
+	elseif (UI.currentState =="TITLE_MENU/CREDIT") then
+		_uiState = "titleMenu/credit"
+	elseif (UI.currentState =="TITLE_MENU/START_GAME/NEW_HERO") then
+		_uiState = "titleMenu/startGame/newHero"
+	end
+return _uiState
 end
 
 
@@ -356,21 +612,29 @@ function drawDialogBox(x,y,col,row)
 
 		for c=1,col do
 			if(c==1 and r==1)then
-			   spr(133,x+(c*8),y+(r*8),5)
+			    --1
+			   spr(12,x+(c*8),y+(r*8),5)
 		   	elseif(c==1 and r==row )then
-			   spr(165,x+(c*8),y+(r*8),5)
+			   --7
+			   spr(44,x+(c*8),y+(r*8),5)
 		   	elseif(c==1 and r~=1)then
-			   spr(149,x+(c*8),y+(r*8),5)
+			   --4
+			   spr(28,x+(c*8),y+(r*8),5)
 		   	elseif(r==1 and c==col)then
-			   spr(135,x+(c*8),y+(r*8),5)
+			   --3
+			   spr(14,x+(c*8),y+(r*8),5)
 		   	elseif(c==col and r==row)then
-		   	   spr(167,x+(c*8),y+(r*8),5)
+			   --9
+		   	   spr(46,x+(c*8),y+(r*8),5)
 		   	elseif(c==col and r~=row) then
-		      	   spr(151,x+(c*8),y+(r*8),5)
+			   --6
+		      	   spr(30,x+(c*8),y+(r*8),5)
 		   	elseif(r==1)then
-			   spr(134,x+(c*8),y+(r*8),5)
+			   --2
+			   spr(13,x+(c*8),y+(r*8),5)
 		   	elseif(r==row)then
-			   spr(166,x+(c*8),y+(r*8),5)
+			   --8
+			   spr(45,x+(c*8),y+(r*8),5)
 			end
 		end
 
@@ -488,7 +752,7 @@ if(data.animation ~= nil) then
 		sprite.animation.moveAnimation[k]=v
 	end
 end
-sprite.i= sprite.animation.moveAnimation[sprite.currentAnimation]
+sprite.i= sprite.animation.moveAnimation[sprite.currentAnimation][1]
 sprite.direction = "right"
 if pAlpha == nil then
    sprite.pAlpha = 0
@@ -507,7 +771,7 @@ if yOffset == nil then
 else
   sprite.y_offset = yOffset
 end
-sprite.data = creerCharacterData(character[10].data,tag)
+sprite.data = creerCharacterData(data.data,tag)
 
 table.insert(Sprites,sprite)
 return sprite
@@ -517,39 +781,7 @@ function creerCharacterData(obj,tag)
 local data = {}
 
 if(tag =="hero") then
-data.name = obj.name
-data.class = obj.class
-data.lvl = obj.lvl
-data.hp = obj.hp
-data.hp_bonus = obj.hp_bonus
-data.current_hp = obj.current_hp
-
-data.mana = obj.mana
-data.mana_bonus = obj.mana_bonus
-data.current_mana = obj.current_mana
-
-data.strength = obj.strength
-data.strength_bonus = obj.strength_bonus
-
-data.magic = obj.magic
-data.magic_bonus = obj.magic_bonus
-
-data.dexterity = obj.dexterity
-data.dexterity_bonus = obj.dexterity_bonus
-
-data.vitality = obj.vitality
-data.vitality_bonus = obj.vitality_bonus
-
-data.gold = obj.gold
-data.armor_class = obj.armor_class
-data.hit = obj.hit
-data.damage = obj.damage
-data.resistMagic =obj.resistMagic
-data.resistFire = obj.resistFire
-data.resistLightning = obj.resistLightning
-data.currentExp = obj.currentExp
-data.nextLevel = obj.nextLevel
-data.statsPoint = obj.statsPoint
+data = memoryLoadCharacter()
 end
 
 return data;
@@ -670,9 +902,7 @@ function AStarPathfinding(point, sprite)
 	point.x = point.x +1
 	point.y = point.y +1
 
-	sprite.pathFindingIsOn = false
-	path_tile = {}
-	path_tile_reverse = {}
+
 
 	-- check for error field
 	if(map[point.y]== nil )then
@@ -682,6 +912,10 @@ function AStarPathfinding(point, sprite)
 	elseif(map[point.y][point.x]== 1) then
 		return false;
             end
+	sprite.pathFindingIsOn = false
+	sprite.pathTrackObject = {}
+	path_tile = {}
+	path_tile_reverse = {}
 
 	start_square = {
 		col = sprite.col,
@@ -958,6 +1192,9 @@ end
 
 -- [*initGame]
 function initGame()
+	sync(1,1,false)
+	sync(2,1,false)
+
 	UI.currentState="BASE_MENU"
 
 
@@ -972,7 +1209,7 @@ function initGame()
 		-- [@yOffset]     Position de decalage y
 		-- [@tag]         tag du sprite
 		-- [@pColor]       color custom du sprite
-		hero = creerSprite(character[10],1,1,nil,nil,nil,"hero",character[10].color)
+		hero = creerSprite(character[pmem(0)],1,1,5,0,-24,"hero",character[10].color)
 		creerSprite(character[1],2,1,nil,nil,nil,"npc",character[1].color)
 		creerSprite(character[2],3,1,nil,nil,nil,"npc",character[2].color)
 		creerSprite(character[3],4,1,nil,nil,nil,"npc",character[3].color)
@@ -1007,30 +1244,34 @@ function initGame()
 	--<UI basemenu>
 		--skill UI
 		creerUIPanel(212,116,19,17,10,"baseMenu")
-		creerUIPanel(213,117,17,15,2,"baseMenu")
+		creerUIPanel(213,117,17,15,0,"baseMenu")
 
 		--item UI
 		creerUIPanel(93,95,65,9,10,"baseMenu")
-
+		-- @x           position x du rectangle
+		-- @y           position y du rectangle
+		-- @width       largeur du rectangle
+		-- @height      hauteur du rectangle
+		-- @color       couleur du rectangle
+		-- @context     le context de l'UI
 		--case
-		creerUIPanel(94,96,7,7,2,"baseMenu")
-		creerUIPanel(102,96,7,7,2,"baseMenu")
-		creerUIPanel(110,96,7,7,2,"baseMenu")
-		creerUIPanel(118,96,7,7,2,"baseMenu")
-		creerUIPanel(126,96,7,7,2,"baseMenu")
-		creerUIPanel(134,96,7,7,2,"baseMenu")
-		creerUIPanel(142,96,7,7,2,"baseMenu")
-		creerUIPanel(150,96,7,7,2,"baseMenu")
+		creerUIPanel(94,96,7,7,0,"baseMenu")
+		creerUIPanel(102,96,7,7,0,"baseMenu")
+		creerUIPanel(110,96,7,7,0,"baseMenu")
+		creerUIPanel(118,96,7,7,0,"baseMenu")
+		creerUIPanel(126,96,7,7,0,"baseMenu")
+		creerUIPanel(134,96,7,7,0,"baseMenu")
+		creerUIPanel(142,96,7,7,0,"baseMenu")
+		creerUIPanel(150,96,7,7,0,"baseMenu")
 
 		--Fenetre interaction
 		creerUIPanel(87,106,80,25,10,"baseMenu")
-		creerUIPanel(88,107,78,23,2,"baseMenu")
+		creerUIPanel(88,107,78,23,0,"baseMenu")
 		--<UI /basemenu>
 
 		--<UI char>
 		creerUIPanel(0,0,111,94,0,"char")
 		creerUIPanel(0,0,110,93,3,"char")
-		creerUIText(2,3,15,hero.data.name,"char")
 		creerUIText(80,3,15,hero.data.class,"char")
 		creerUIText(2,15,15,"Lv."..hero.data.lvl,"char")
 		creerUIText(72,15,15,"xp."..hero.data.currentExp,"char")
@@ -1196,7 +1437,7 @@ end
 -- [*TICGame]
 function TICGame()
 	x_map =52 -hero.x
-	y_map = 16 -hero.y
+	y_map = 24 -hero.y
 	mx,my,md = mouse()
 	x2=mx
 	y2=my
@@ -1208,7 +1449,6 @@ function TICGame()
 			helping_box.col = point.x
 			helping_box.row = point.y
 			-- define the pathFinding for the player
-			hero.pathTrackObject = {}
 			hero.currentAnimation = "move"
 			AStarPathfinding( point ,hero);
 			-- set the movment into motion for the player
@@ -1275,9 +1515,9 @@ function drawGame()
 			-- @col : index colonne
 			-- @row : index ligne
 			if(map[row][col] == 0) then
-			   setTile(1,row,col,0)
+			   setTile(0,row,col,0)
 		   	elseif(map[row][col] == 1) then
-			   setTile(10,row,col,5)
+			   setTile(9,row,col,5)
 			end
 
 		end
@@ -1295,31 +1535,31 @@ function OVRGame()
 	circ(182,97,17,8)
 	circb(182,97,17,16)
 	local diable_spr = {
-		{176,177,178,179,180,181,182},
-		{192,193,194,195,196,197,198},
-		{208,209,210,211,212,213,214},
-		{224,225,226,227,228,229,230},
-		{240,241,242,243,244,245,246},
-		{256,257,258,259,260,261,262},
+		{420,421,422,423,424,425,426},
+		{436,437,438,439,440,441,442},
+		{452,453,454,455,456,457,458},
+		{468,469,470,471,472,473,474},
+		{484,485,486,487,488,489,490},
+		{500,501,502,503,504,505,506},
 	}
 
 	local angel_spr = {
-		{272,273,274,275,276},
-		{288,289,290,291,292},
-		{304,305,306,307,308},
-		{320,321,322,323,324},
-		{336,337,338,339,340}
+		{443,444,445,446,447},
+		{459,460,461,462,463},
+		{475,476,477,478,479},
+		{491,492,493,494,495},
+		{507,508,509,510,511}
 	}
 
 	for y=1,#diable_spr do
 		for x=1,#diable_spr[y] do
-			spr(diable_spr[y][x],30 + x*8,86 + y*8,5)
+			spr(diable_spr[y][x],29 + x*8,81 + y*8,5)
 		end
 	end
 
 	for y=1,#angel_spr do
 		for x=1,#angel_spr[y] do
-			spr(angel_spr[y][x],155 + x*8,88 + y*8,5)
+			spr(angel_spr[y][x],153 + x*8,88 + y*8,5)
 		end
 	end
 
@@ -1333,9 +1573,20 @@ function TICTitle()
 	mx,my,md = mouse()
 	x2=mx
 	y2=my
-	if(md == true) then
-	   TICUpdateButton()
+
+	if (md == true and button_click_already == false) then
+		-- set the function ()
+		TICUpdateButton()
 	end
+
+	if (button_click_already == true) then
+		button_click_already_counter = button_click_already_counter + 1
+		if button_click_already_counter == 20 then
+			button_click_already_counter = 0
+			button_click_already = false
+		end
+	end
+
 	poke(0x3FFB,8)
 
 	cls(1)
@@ -1350,6 +1601,8 @@ function initTitle()
 	-- @color(table)       couleur du rectangle (colorbutton = 1;colorbuttonHover = 2;colorText = 3;colorTextHover = 4)
 	-- [@text]             texte du button
 	-- @context            le context de l'UI
+	sync(1,0,false)
+	sync(2,0,false)
 	UI.currentState="TITLE_MENU"
 	if(isAlreadyLoaded.TITLE==false) then
 
@@ -1362,18 +1615,30 @@ function initTitle()
 		button = creerUIButton(100,88,45,10,{0,0,15,13},"      quit","titleMenu")
 		--<UI /titleMenu>
 
-		-- @x           position x du text
-		-- @y           position y du text
-		-- @color       couleur du text
-		-- @pText        texte
-		-- @context     le context de l'UI
+
 		--<UI titleMenu/startGame>
 		creerUIText(140,47,15,"select char","titleMenu/startGame")
+		creerUIText(20,71,15,"level:","titleMenu/startGame")
+		creerUIText(20,83,15,"str:","titleMenu/startGame")
+		creerUIText(20,95,15,"mag:","titleMenu/startGame")
+		creerUIText(20,107,15,"dex:","titleMenu/startGame")
+		creerUIText(20,118,15,"vit:","titleMenu/startGame")
+
 		button = creerUIButton(200,126,34,10,{1,1,15,13}," cancel","titleMenu/startGame")
 		button.state = "TITLE_MENU"
 		button = creerUIButton(141,126,34,10,{1,1,15,13}," delete","titleMenu/startGame")
 		button = creerUIButton(89,126,34,10,{1,1,15,13}," ok","titleMenu/startGame")
 		button.state = "GAME"
+		button = creerUIButton(94,69,134,10,{1,1,15,13},"                        --EMPTY--","titleMenu/startGame")
+		button.state = "UPDATE_CUR_CHOICE"
+		button.id = 0
+		UI["titleMenu/startGame"].selectedButton = button
+		button = creerUIButton(94,84,134,10,{1,1,15,13},"                        --EMPTY--","titleMenu/startGame")
+		button.state = "UPDATE_CUR_CHOICE"
+		button.id = 1
+		button = creerUIButton(94,99,134,10,{1,1,15,13},"                        --EMPTY--","titleMenu/startGame")
+		button.state = "UPDATE_CUR_CHOICE"
+		button.id = 2
 		-- @x                  position x du dialogBox
 		-- @y                  position y du dialogBox
 		-- @col                nombre de sprite au niveau de la colonne
@@ -1384,8 +1649,30 @@ function initTitle()
 		creerDialogueBox(75,53,19,8,"titleMenu/startGame")
 		creerDialogueBox(75,32,19,3,"titleMenu/startGame")
 
-		--</UI titleMenu/startGame>
+		--</UI titleMenu/startGame/newHero>
 
+
+		--<UI titleMenu/startGame/newHero>
+		creerDialogueBox(1,32,9,3,"titleMenu/startGame/newHero")
+		creerDialogueBox(1,59,9,8,"titleMenu/startGame/newHero")
+		creerDialogueBox(75,53,19,8,"titleMenu/startGame/newHero")
+		creerDialogueBox(75,32,19,3,"titleMenu/startGame/newHero")
+
+		button = creerUIButton(200,126,34,10,{1,1,15,13}," cancel","titleMenu/startGame/newHero")
+		button.state = "TITLE_MENU/START_GAME"
+		button = creerUIButton(89,126,34,10,{1,1,15,13}," ok","titleMenu/startGame/newHero")
+		button.state = "GAME"
+		button = creerUIButton(94,69,134,10,{1,1,15,13},"                        WARRIOR","titleMenu/startGame/newHero")
+		button.state = "UPDATE_CUR_CHOICE"
+		button.id = 0
+		UI["titleMenu/startGame/newHero"].selectedButton = button
+		button = creerUIButton(94,84,134,10,{1,1,15,13},"                        ROGUE","titleMenu/startGame/newHero")
+		button.state = "UPDATE_CUR_CHOICE"
+		button.id = 1
+		button = creerUIButton(94,99,134,10,{1,1,15,13},"                        WIZARD","titleMenu/startGame/newHero")
+		button.state = "UPDATE_CUR_CHOICE"
+		button.id = 2
+		--</UI titleMenu/startGame/newHero>
 
 	end
 
@@ -1400,9 +1687,9 @@ end
 function OVRTitle()
 	if(UI.currentState == "TITLE_MENU/START_GAME") then
 		local thief_spr = {
-			{352,353,354,355,356,357,358,359},
-			{368,369,370,371,372,373,374,375},
-			{384,385,386,387,388,389,390,391},
+			{0,1,2,3,4,5,6,7},
+			{16,17,18,19,20,21,22,23},
+			{32,33,34,35,36,37,38,39},
 		}
 
 		for row=1,#thief_spr do
@@ -1423,11 +1710,11 @@ end
 
 -- [*init]
 function init()
-
 	if(gameState == "GAME") then
 	    initGame()
     	elseif(gameState =="TITLE") then
 	    initTitle()
+
 	end
 end
 
@@ -1489,26 +1776,8 @@ function generateUIEvent()
 
 	--</UI baseMenu>
 
-local _uiState = "BASE_MENU"
-if(UI.currentState == "CHAR") then
-	_uiState = "char"
-elseif (UI.currentState =="QUEST") then
-	_uiState = "quest"
-elseif (UI.currentState =="INV") then
-	_uiState = "inv"
-elseif (UI.currentState =="MENU") then
-	_uiState = "menu"
-elseif (UI.currentState =="SPELLS") then
-	_uiState = "spells"
-elseif (UI.currentState =="CHAR/1") then
-	_uiState = "char/1"
-elseif (UI.currentState =="TITLE_MENU") then
-	_uiState = "titleMenu"
-elseif (UI.currentState =="TITLE_MENU/START_GAME") then
-	_uiState = "titleMenu/startGame"
-elseif (UI.currentState =="TITLE_MENU/CREDIT") then
-	_uiState = "titleMenu/credit"
-end
+local _uiState = reduxUIFnt()
+
 	if(_uiState ~= "BASE_MENU") then
 		for i=1,#UI[_uiState].panel do
 			local panel = UI[_uiState].panel[i]
@@ -1553,6 +1822,22 @@ end
 			drawDialogBox(x,y,col,row)
 		end
 
+		if(_uiState == "titleMenu/startGame" or
+		   _uiState == "titleMenu/startGame/newHero" or
+		   _uiState == "titleMenu/startGame/newHero/name") then
+			local currentChoice = UI[_uiState].currentChoice
+			spr(8,85,65+(15*currentChoice),0)
+			spr(9,92,65+(15*currentChoice),0)
+			spr(24,85,73+(15*currentChoice),0)
+			spr(25,92,73+(15*currentChoice),0)
+
+			spr(8,225,65+(15*currentChoice),0,1,1)
+			spr(9,217,65+(15*currentChoice),0,1,1)
+			spr(24,225,73+(15*currentChoice),0,1,1)
+			spr(25,217,73+(15*currentChoice),0,1,1)
+
+		end
+
 	end
 	if(UI.currentState == "MAP") then
 		--<UI map>
@@ -1567,7 +1852,7 @@ end
 
 
 
-	spr(100,x2,y2,5,SCALE);
+	spr(15,x2,y2,5,SCALE);
 
 
 
@@ -1575,8 +1860,8 @@ end
 
 --[*TICUpdateButton]
 function TICUpdateButton()
-	local _uiState = "BASE_MENU"
-	if(y2 >=96 and _uiState=="BASE_MENU") then
+	local _uiState = reduxUIFnt()
+	if(y2 >=96) then
 		for i=1,#UI.baseMenu.button do
 			local button = UI.baseMenu.button[i]
 			local x = button.x
@@ -1593,25 +1878,6 @@ function TICUpdateButton()
 		end
 	end
 
-	if(UI.currentState == "CHAR") then
-		_uiState = "char"
-	elseif (UI.currentState =="QUEST") then
-		_uiState = "quest"
-	elseif (UI.currentState =="INV") then
-		_uiState = "inv"
-	elseif (UI.currentState =="MENU") then
-		_uiState = "menu"
-	elseif (UI.currentState =="SPELLS") then
-		_uiState = "spells"
-	elseif (UI.currentState =="CHAR/1") then
-		_uiState = "char/1"
-	elseif (UI.currentState =="TITLE_MENU") then
-		_uiState = "titleMenu"
-	elseif (UI.currentState =="TITLE_MENU/START_GAME") then
-		_uiState = "titleMenu/startGame"
-	elseif (UI.currentState =="TITLE_MENU/CREDIT") then
-		_uiState = "titleMenu/credit"
-	end
 	if(_uiState ~= "BASE_MENU") then
 		for i=1,#UI[_uiState].button do
 			local button = UI[_uiState].button[i]
@@ -1619,13 +1885,51 @@ function TICUpdateButton()
 			local y = button.y
 			local w = button.width
 			local h = button.height
+			local text = button.text
 			if( x2>=x and x2<=x+w and y2>=y and y2<=y+h) then
 				   if(button.state ~= nil) then
-					   if(button.state =="GAME" or button.state=="TITLE") then
+					   if(button.state =="GAME") then
+						   if(UI[_uiState].isCreated ==true or _uiState =="titleMenu/startGame/newHero") then
+							-- trace(UI["titleMenu/startGame/newHero"].selectedButton.text)
+							local name = UI[_uiState].selectedButton.text
+							local id_ar= 10
+							local text02= name.." level : 1"
+							UI["titleMenu/startGame"].selectedButton.text = text02
+							trace(name)
+							if(name == "                        WARRIOR") then
+							id_ar = 10
+						elseif(name== "                        ROGUE")then
+
+							id_ar = 11
+							else -- text == sorcerer
+							id_ar = 12
+							end
+							memorySaveCharacter(character[id_ar].data)
+							trace(id_ar)
+							changeGameState(button.state)
+						   else
+							changeUIbuttonState("TITLE_MENU/START_GAME/NEW_HERO")
+						   end
+				               elseif(button.state =="TITLE") then
 						   changeGameState(button.state)
+					   elseif(button.state == "UPDATE_CUR_CHOICE") then
+
+						   local currentChoice = UI[_uiState].currentChoice
+						   UI[_uiState].currentChoice = button.id
+						   UI[_uiState].selectedButton = button
+
+						   if(text == "                        --EMPTY--") then
+							   UI[_uiState].isCreated = false
+						   else
+							   UI[_uiState].isCreated = true
+						   end
+
+
 					   else
 						   changeUIbuttonState(button.state)
 					   end
+
+
 					   button_click_already = true
 				   end
 			end
@@ -1672,36 +1976,39 @@ function drawSprite()
 		sprite.y = (4*col+4*row) + sprite.distanceSquareDestination.y
 
 		local pAlpha = sprite.pAlpha
-		outLineSprite(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha)
+		-- outLineSprite(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha)
 		if(sprite.color ~= nil) then
-			switchPal(12,sprite.color.skin)
-			switchPal(4,sprite.color.shirt)
-			switchPal(6,sprite.color.pant)
-			if(sprite.color.alpha ~= sprite.pAlpha and sprite.color.alpha ~= nil) then
-				switchPal(sprite.color.alpha,sprite.pAlpha)
-			end
+			-- switchPal(12,sprite.color.skin)
+			-- switchPal(4,sprite.color.shirt)
+			-- switchPal(6,sprite.color.pant)
+			-- if(sprite.color.alpha ~= sprite.pAlpha and sprite.color.alpha ~= nil) then
+			-- 	switchPal(sprite.color.alpha,sprite.pAlpha)
+			-- end
 
 		end
 
 		-- set the sprite
-		sync(1,sprite.bank,false)
 		for h = 1,sprite.heightFrame do
 			for w = 1,sprite.widthFrame do
-				spr(i[h*w], (x_map+ sprite.x )* SCALE + x_offset + (8*(w -1)*SCALE ),( y_map+sprite.y ) * SCALE + y_offset+ (8*(h -1) *SCALE ),pAlpha,SCALE)
+				if(h==1) then
+				  spr(i[h*w], (x_map+ sprite.x )* SCALE + x_offset + (8*(w -1)*SCALE ),( y_map+sprite.y ) * SCALE + y_offset+ (8*(h -1) *SCALE ),pAlpha,SCALE)
+				else
+				  spr(i[h+w], (x_map+ sprite.x )* SCALE + x_offset + (8*(w -1)*SCALE ),( y_map+sprite.y ) * SCALE + y_offset+ (8*(h -1) *SCALE ),pAlpha,SCALE)
+				end
 			end
 		end
 		--spr(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha,SCALE)
-		-- sync(1,0,false)
+
 
 
 		if(sprite.color ~= nil) then
-			switchPal(12,12)
-			switchPal(4,4)
-			switchPal(6,6)
-
-			if(sprite.color.alpha ~= sprite.pAlpha) then
-				switchPal(11,11)
-			end
+			-- switchPal(12,12)
+			-- switchPal(4,4)
+			-- switchPal(6,6)
+			--
+			-- if(sprite.color.alpha ~= sprite.pAlpha) then
+			-- 	switchPal(11,11)
+			-- end
 
 		end
 		-- spr(i, (x_map+8*col-8*row )* SCALE + x_offset,(y_map+4*col+4*row) * SCALE + y_offset,pAlpha,SCALE)
@@ -1767,7 +2074,6 @@ function OVR()
 	OVRTitle()
 	end
 end
-
 
 
 
