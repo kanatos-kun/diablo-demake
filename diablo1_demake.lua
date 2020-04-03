@@ -30,12 +30,13 @@
 -- [*generateUIEvent]
 -- [*TICUpdateButton]
 -- [*memoryFunction]
---[*memorySaveCharacter]
---[*memoryLoadCharacter]
+-- [*memorySaveCharacter]
+-- [*memoryLoadCharacter]
 -- [*drawDialogBox]
 -- [*creerDialogueBox]
 -- [*changeGameState]
 -- [*reduxUIFnt]
+--[*generateDungeon]
 --help block:
 --<UI basemenu>
 --<UI char>
@@ -62,26 +63,68 @@ y2=0
 SCALE = 2
 TILE_WIDTH_HALF = 8
 TILE_HEIGHT_HALF = 4
+cursor = 15
+current_location = "city"
 -- camera = {x=0,y=0}
 map={
-	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-	{0,0,1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0},
-	{0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0},
-	{0,0,1,1,0,1,0,0,1,1,0,1,0,0,0,0,0,0},
-	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-	{1,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0},
-	{0,0,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0},
-	{0,0,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0},
-	{0,0,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0},
-	{0,0,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0},
-	{0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-	{0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-	{0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	layers={
+		{
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0,0,0,0},
+			{0,0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0,0,0,0},
+			{0,0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+			{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+		}
+	},
+	-- 1 == speak interraction
+	-- 2 == go to the dungeon
+	interraction={
+		{
+			type="teleport",
+			col=20,
+			row=2,
+			target="dungeon"
+		},
+		{
+			type="discussion",
+			col=11,
+			row=12,
+			id= 1,
+			pAlpha=5,
+			xOffset=0,
+			yOffset=-24,
+			tag="npc"
+		},
+	}
+
 
 }
+
+map_dungeon = {
+	size=15,
+	layers={{}},
+	-- 1= return to city
+	-- 2= go up the dungeon
+	interraction={
+
+	}
+}
+
 gameState = "TITLE"
 -- Gamestate :
 -- TITLE
@@ -126,8 +169,8 @@ character ={
 	--[1]
 	-- priest
 	{
-		widthFrame=1,
-		heightFrame=1,
+		widthFrame=2,
+		heightFrame=2,
 		bank=1,
 		color ={
 			skin = 12,
@@ -136,7 +179,7 @@ character ={
 		},
 		animation={
 			idle={
-				{16},
+				{192,193,208,209},
 			}
 		}
 	},
@@ -290,7 +333,6 @@ character ={
 			alpha = 5
 		},
 		data = {
-			name = "Jojoffrey",
 			class=10,
 			lvl = 1,
 			hp = 50,
@@ -349,7 +391,6 @@ character ={
 			alpha = 5
 		},
 		data = {
-			name = "Jojoffrey",
 			class=11,
 			lvl = 1,
 			hp = 50,
@@ -408,7 +449,6 @@ character ={
 			alpha = 5
 		},
 		data = {
-			name = "Jojoffrey",
 			class=12,
 			lvl = 1,
 			hp = 50,
@@ -491,8 +531,8 @@ function memorySaveCharacter(data)
 	pmem(26,0)
 	--pos y
 	pmem(27,0)
-
-	trace(pmem(0))
+	--slot taken!
+	pmem(28,1)
 end
 
 --[*memoryLoadCharacter]
@@ -662,6 +702,7 @@ sprite.row = row
 sprite.col = col
 sprite.x = (8*col-8*row) * SCALE
 sprite.y = (4*col+4*row) * SCALE
+sprite.flip = 0
 sprite.pathTrackObject = {}
 sprite.pathFindingIsOn = false
 sprite.moveVitesse = 2
@@ -694,7 +735,14 @@ sprite.followPath = function()
 		   #sprite.pathTrackObject > 1) then
 			if(sprite.pathTrackObject[#sprite.pathTrackObject - 1].col ~=  sprite.pointSquareDestination.col or
 		 	   sprite.pathTrackObject[#sprite.pathTrackObject - 1].row ~=  sprite.pointSquareDestination.row) then
+
 				   sprite.pointSquareDestination = sprite.pathTrackObject[#sprite.pathTrackObject - 1]
+
+				   if(sprite.pointSquareDestination.col  < sprite.pathTrackObject[#sprite.pathTrackObject].col) then
+					   sprite.flip = 1
+				   else
+					   sprite.flip = 0
+				   end
 				   local point_dest = {
 				  x = (8*sprite.pointSquareDestination.col-8*sprite.pointSquareDestination.row),
 				  y = (4*sprite.pointSquareDestination.col+4*sprite.pointSquareDestination.row)
@@ -902,14 +950,17 @@ function AStarPathfinding(point, sprite)
 	point.x = point.x +1
 	point.y = point.y +1
 
-
+	local _map = map
+	if(current_location == "dungeon") then
+	            _map=map_dungeon
+	end
 
 	-- check for error field
-	if(map[point.y]== nil )then
+	if(_map.layers[1][point.y]== nil )then
 		return false;
-	elseif(map[point.y][point.x]== nil) then
+	elseif(_map.layers[1][point.y][point.x]== nil) then
 		return false;
-	elseif(map[point.y][point.x]== 1) then
+	elseif(_map.layers[1][point.y][point.x]== 1) then
 		return false;
             end
 	sprite.pathFindingIsOn = false
@@ -1128,6 +1179,12 @@ end
 
 -- [*addSquareForAStarPathfinding]
 function addSquareForAStarPathfinding(pSquare,point,dir)
+
+	local _map = map
+	if(current_location == "dungeon") then
+	            _map=map_dungeon
+	end
+
 	local square = {}
 	if(dir == 0) then
 	square.col=pSquare.col
@@ -1172,8 +1229,8 @@ function addSquareForAStarPathfinding(pSquare,point,dir)
 	square.isInOpenList = false
 	square.isInClosedList = false
 	square.isInNonWalkableTile = false
-	if(map[square.row] ~= nil) then
-	local tileType = map[square.row][square.col];
+	if(_map.layers[1][square.row] ~= nil) then
+	local tileType = _map.layers[1][square.row][square.col];
 		if(tileType ~= nil) then
 			if(tileType == 1) then
 			 square.isInNonWalkableTile = true
@@ -1181,9 +1238,9 @@ function addSquareForAStarPathfinding(pSquare,point,dir)
 		end
 	end
 
-	if(map[square.row] == nil) then
+	if(_map.layers[1][square.row] == nil) then
 	    square.isInNonWalkableTile = true
-    	elseif(map[square.row][square.col] == nil) then
+    	elseif(_map.layers[1][square.row][square.col] == nil) then
 	    square.isInNonWalkableTile = true
 	end
 
@@ -1197,6 +1254,22 @@ function initGame()
 
 	UI.currentState="BASE_MENU"
 
+	for i=1,#map.interraction do
+		local objet = map.interraction[i]
+		local type = objet.type
+
+		if(type =="discussion") then
+		    creerSprite(character[objet.id],
+			    objet.row,
+			    objet.col,
+			    objet.pAlpha,
+			    objet.xOffset,
+			    objet.yOffset,
+			    objet.tag)
+		end
+	end
+
+	hero = creerSprite(character[pmem(0)],13,13,5,0,-24,"hero")
 
       	if(isAlreadyLoaded.GAME==false) then
 
@@ -1209,16 +1282,15 @@ function initGame()
 		-- [@yOffset]     Position de decalage y
 		-- [@tag]         tag du sprite
 		-- [@pColor]       color custom du sprite
-		hero = creerSprite(character[pmem(0)],1,1,5,0,-24,"hero",character[10].color)
-		creerSprite(character[1],2,1,nil,nil,nil,"npc",character[1].color)
-		creerSprite(character[2],3,1,nil,nil,nil,"npc",character[2].color)
-		creerSprite(character[3],4,1,nil,nil,nil,"npc",character[3].color)
-		creerSprite(character[4],5,1,nil,nil,nil,"npc",character[4].color)
-		creerSprite(character[5],6,1,nil,nil,nil,"npc",character[5].color)
-		creerSprite(character[6],7,1,nil,nil,nil,"npc",character[6].color)
-		creerSprite(character[7],8,1,nil,nil,nil,"npc",character[7].color)
-		creerSprite(character[8],9,1,nil,nil,nil,"npc",character[8].color)
-		creerSprite(character[9],10,1,nil,nil,nil,"npc",character[9].color)
+		-- creerSprite(character[1],11,12,5,0,-24,"npc",character[1].color)
+		-- creerSprite(character[1],3,1,5,0,-24,"npc",character[2].color)
+		-- creerSprite(character[1],4,1,5,0,-24,"npc",character[3].color)
+		-- creerSprite(character[4],5,1,nil,nil,nil,"npc",character[4].color)
+		-- creerSprite(character[5],6,1,nil,nil,nil,"npc",character[5].color)
+		-- creerSprite(character[6],7,1,nil,nil,nil,"npc",character[6].color)
+		-- creerSprite(character[7],8,1,nil,nil,nil,"npc",character[7].color)
+		-- creerSprite(character[8],9,1,nil,nil,nil,"npc",character[8].color)
+		-- creerSprite(character[9],10,1,nil,nil,nil,"npc",character[9].color)
 
 		-- @x              position x du rectangle
 		-- @y              position y du rectangle
@@ -1441,8 +1513,40 @@ function TICGame()
 	mx,my,md = mouse()
 	x2=mx
 	y2=my
+
 	local point = screenToMap(mx, my)
-	if  (md == true and path_already_loaded == false and y2 <=96 ) then
+
+
+	-- change cursor icone
+	for i=1,#map.interraction do
+		local row = map.interraction[i].row
+		local col = map.interraction[i].col
+		local type = map.interraction[i].type
+
+		if(row>= hero.row + 6 or col >= hero.col + 6 or row<= hero.row - 6 or col <= hero.col - 6) then
+		            -- don't render
+		else
+			if((point.x +1)==col and (point.y +1)==row and type=="teleport") then
+			       cursor = 63
+			       if(hero.row == row and hero.col == col)then
+				       current_location = map.interraction[i].target
+			       end
+		       elseif((point.x +1)==col and (point.y +3)==row and type=="discussion") then
+			       cursor = 31
+		       	else
+			       cursor = 15
+			end
+		end
+	end
+	-- if((point.x +2)==11 and (point.y +2)==12)then
+	-- 	cursor = 31
+	-- elseif((point.x +1)==20 and (point.y +1)==2) then
+	-- 	cursor = 63
+	-- else
+	-- 	cursor = 15
+	-- end
+
+	if  (md == true and path_already_loaded == false and y2 <=96) then
 		if(UI.currentState =="BASE_MENU") then
 
 			path_already_loaded = true
@@ -1510,18 +1614,37 @@ end
 
 -- [*drawGame]
 function drawGame()
-	for row=1,#map do
-		for col=1,#map[row] do
-			-- @col : index colonne
-			-- @row : index ligne
-			if(map[row][col] == 0) then
-			   setTile(0,row,col,0)
-		   	elseif(map[row][col] == 1) then
-			   setTile(9,row,col,5)
+
+	local _map = map
+	if(current_location == "dungeon") then
+		_map=map_dungeon
+	end
+	if(map_dungeon.isMapLoaded == true or current_location =="city") then
+
+		for row=hero.row-6,hero.row+6 do
+			if(_map.layers[1][row] ~= nil )then
+				for col=hero.col-6,hero.col+6 do
+					if(_map.layers[1][row][col] ~= nil )then
+						-- @col : index colonne
+						-- @row : index ligne
+						if(_map.layers[1][row][col] == 0) then
+						   setTile(0,row,col,0)
+					   	elseif(_map.layers[1][row][col] == 1) then
+						   setTile(9,row,col,5)
+					   	elseif(_map.layers[1][row][col] == 2)then
+						   setTile(1,row,col,0)
+						end
+					end
+
+
+				end
 			end
 
 		end
+
+
 	end
+
 	draw_helping_box()
 	drawSprite()
 end
@@ -1632,13 +1755,21 @@ function initTitle()
 		button = creerUIButton(94,69,134,10,{1,1,15,13},"                        --EMPTY--","titleMenu/startGame")
 		button.state = "UPDATE_CUR_CHOICE"
 		button.id = 0
+		if(pmem(28)==1) then
+			local name = "warrior"
+			if(pmem(0)==10)then name ="warrior" end
+			if(pmem(0)==11)then name ="rogue" end
+			if(pmem(0)==12)then name ="sorcerer" end
+			button.text = name.." level : "..pmem(1)
+			UI["titleMenu/startGame"].isCreated = true
+		end
 		UI["titleMenu/startGame"].selectedButton = button
-		button = creerUIButton(94,84,134,10,{1,1,15,13},"                        --EMPTY--","titleMenu/startGame")
-		button.state = "UPDATE_CUR_CHOICE"
-		button.id = 1
-		button = creerUIButton(94,99,134,10,{1,1,15,13},"                        --EMPTY--","titleMenu/startGame")
-		button.state = "UPDATE_CUR_CHOICE"
-		button.id = 2
+		-- button = creerUIButton(94,84,134,10,{1,1,15,13},"                        --EMPTY--","titleMenu/startGame")
+		-- button.state = "UPDATE_CUR_CHOICE"
+		-- button.id = 1
+		-- button = creerUIButton(94,99,134,10,{1,1,15,13},"                        --EMPTY--","titleMenu/startGame")
+		-- button.state = "UPDATE_CUR_CHOICE"
+		-- button.id = 2
 		-- @x                  position x du dialogBox
 		-- @y                  position y du dialogBox
 		-- @col                nombre de sprite au niveau de la colonne
@@ -1685,7 +1816,7 @@ end
 
 -- [*OVRTitle]
 function OVRTitle()
-	if(UI.currentState == "TITLE_MENU/START_GAME") then
+	if(UI.currentState == "TITLE_MENU/START_GAME" or UI.currentState == "TITLE_MENU/START_GAME/NEW_HERO" ) then
 		local thief_spr = {
 			{0,1,2,3,4,5,6,7},
 			{16,17,18,19,20,21,22,23},
@@ -1711,10 +1842,10 @@ end
 -- [*init]
 function init()
 	if(gameState == "GAME") then
+	   Sprites = {}
 	    initGame()
     	elseif(gameState =="TITLE") then
 	    initTitle()
-
 	end
 end
 
@@ -1849,14 +1980,79 @@ local _uiState = reduxUIFnt()
 
 
 	-- spr(114,93,94,0)
-
-
-
-	spr(15,x2,y2,5,SCALE);
-
-
+	spr(cursor,x2,y2,5,SCALE)
 
 end
+
+--[*creerSalle]
+function creerSalle(col,row)
+	local salle = {}
+	salle.row = row
+	salle.col = col
+	salle.doorIsOpen = false
+	return salle
+end
+
+function creerTunnel(salle1,salle2)
+	local tunnel = {}
+	return tunnel
+end
+
+--[*generateDungeon]
+function generateDungeon()
+	map_dungeon.size = math.random(40,70)
+	map_dungeon.nbrSalle =math.floor(0.2*map_dungeon.size)
+	map_dungeon.salles = {}
+	--basic dungeon generation done!(with just block)
+	for row=1,map_dungeon.size do
+		map_dungeon.layers[1][row] = {}
+		for col=1,map_dungeon.size do
+			table.insert(map_dungeon.layers[1][row],0)
+		end
+	end
+	hero.col = math.random(1,map_dungeon.size)
+	hero.row = math.random(1,map_dungeon.size)
+	local salle_on = map_dungeon.nbrSalle
+	trace(salle_on)
+	while(salle_on>0)do
+		local col = math.random(1,map_dungeon.size-6)
+		local row = math.random(1,map_dungeon.size-6)
+		local mySalle = creerSalle(col,row)
+		local isCheck = true
+		--check if salle don't overlapse with each other
+		for s=1,#map_dungeon.salles do
+			local sa=map_dungeon.salles[s]
+			if((mySalle.col+6 >= sa.col)   and
+		 	   (mySalle.col <= sa.col+6) and
+			   (mySalle.row <= sa.row+6) and
+			   (mySalle.row+6 >= sa.row)
+		   	)then
+				isCheck = false
+			end
+		end
+		if(isCheck == true) then
+			table.insert(map_dungeon.salles,mySalle)
+			salle_on = salle_on -1
+		end
+
+	end
+
+	for s=1,#map_dungeon.salles do
+		for col=1,6 do
+			for row=1,6 do
+				local col2 = map_dungeon.salles[s].col+col
+				local row2 = map_dungeon.salles[s].row+row
+				map_dungeon.layers[1][col2][row2] = 2
+			end
+		end
+	end
+
+	map_dungeon.isMapLoaded = true
+
+end
+
+
+generateDungeon()
 
 --[*TICUpdateButton]
 function TICUpdateButton()
@@ -1893,9 +2089,9 @@ function TICUpdateButton()
 							-- trace(UI["titleMenu/startGame/newHero"].selectedButton.text)
 							local name = UI[_uiState].selectedButton.text
 							local id_ar= 10
-							local text02= name.." level : 1"
+							local text02= name.." level : "..pmem(1)
+
 							UI["titleMenu/startGame"].selectedButton.text = text02
-							trace(name)
 							if(name == "                        WARRIOR") then
 							id_ar = 10
 						elseif(name== "                        ROGUE")then
@@ -1905,15 +2101,14 @@ function TICUpdateButton()
 							id_ar = 12
 							end
 							memorySaveCharacter(character[id_ar].data)
-							trace(id_ar)
 							changeGameState(button.state)
 						   else
+
 							changeUIbuttonState("TITLE_MENU/START_GAME/NEW_HERO")
 						   end
 				               elseif(button.state =="TITLE") then
 						   changeGameState(button.state)
 					   elseif(button.state == "UPDATE_CUR_CHOICE") then
-
 						   local currentChoice = UI[_uiState].currentChoice
 						   UI[_uiState].currentChoice = button.id
 						   UI[_uiState].selectedButton = button
@@ -1968,50 +2163,72 @@ function drawSprite()
 		local i = sprite.i
 		local row = sprite.row
 		local col = sprite.col
-		local x_offset= sprite.x_offset
-		local y_offset = sprite.y_offset
-		sprite.distanceSquareDestination.x = sprite.distanceSquareDestination.x + sprite.pointDistanceStep.x
-		sprite.distanceSquareDestination.y = sprite.distanceSquareDestination.y + sprite.pointDistanceStep.y
-		sprite.x = (8*col-8*row) + sprite.distanceSquareDestination.x
-		sprite.y = (4*col+4*row) + sprite.distanceSquareDestination.y
 
-		local pAlpha = sprite.pAlpha
-		-- outLineSprite(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha)
-		if(sprite.color ~= nil) then
-			-- switchPal(12,sprite.color.skin)
-			-- switchPal(4,sprite.color.shirt)
-			-- switchPal(6,sprite.color.pant)
-			-- if(sprite.color.alpha ~= sprite.pAlpha and sprite.color.alpha ~= nil) then
-			-- 	switchPal(sprite.color.alpha,sprite.pAlpha)
-			-- end
+		-- function chunking && increase perf cpu
+		if(row>= hero.row + 6 or col >= hero.col + 6 or row<= hero.row - 6 or col <= hero.col - 6) then
+			-- don't render
+		else
+			-- render !!
 
-		end
+			local x_offset= sprite.x_offset
+			local y_offset = sprite.y_offset
+			local flip = sprite.flip
+			sprite.distanceSquareDestination.x = sprite.distanceSquareDestination.x + sprite.pointDistanceStep.x
+			sprite.distanceSquareDestination.y = sprite.distanceSquareDestination.y + sprite.pointDistanceStep.y
+			sprite.x = (8*col-8*row) + sprite.distanceSquareDestination.x
+			sprite.y = (4*col+4*row) + sprite.distanceSquareDestination.y
 
-		-- set the sprite
-		for h = 1,sprite.heightFrame do
-			for w = 1,sprite.widthFrame do
-				if(h==1) then
-				  spr(i[h*w], (x_map+ sprite.x )* SCALE + x_offset + (8*(w -1)*SCALE ),( y_map+sprite.y ) * SCALE + y_offset+ (8*(h -1) *SCALE ),pAlpha,SCALE)
-				else
-				  spr(i[h+w], (x_map+ sprite.x )* SCALE + x_offset + (8*(w -1)*SCALE ),( y_map+sprite.y ) * SCALE + y_offset+ (8*(h -1) *SCALE ),pAlpha,SCALE)
+			local pAlpha = sprite.pAlpha
+			-- outLineSprite(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha)
+			if(sprite.color ~= nil) then
+				-- switchPal(12,sprite.color.skin)
+				-- switchPal(4,sprite.color.shirt)
+				-- switchPal(6,sprite.color.pant)
+				-- if(sprite.color.alpha ~= sprite.pAlpha and sprite.color.alpha ~= nil) then
+				-- 	switchPal(sprite.color.alpha,sprite.pAlpha)
+				-- end
+
+			end
+
+			-- set the sprite
+			for h = 1,sprite.heightFrame do
+				local vaFlip= 1
+				for w = 1,sprite.widthFrame do
+					if(h==1) then
+						if(flip==1)then
+						spr(i[h*w + vaFlip], (x_map+ sprite.x )* SCALE + x_offset + (8*(w -1)*SCALE ),( y_map+sprite.y ) * SCALE + y_offset+ (8*(h -1) *SCALE ),pAlpha,SCALE,flip)
+						  if(vaFlip ==1 )then vaFlip = -1 elseif(vaFlip== -1)then vaFlip = 1 end
+						else
+						spr(i[h*w], (x_map+ sprite.x )* SCALE + x_offset + (8*(w -1)*SCALE ),( y_map+sprite.y ) * SCALE + y_offset+ (8*(h -1) *SCALE ),pAlpha,SCALE,flip)
+						end
+					else
+						if(flip==1)then
+						spr(i[h+w + vaFlip], (x_map+ sprite.x )* SCALE + x_offset + (8*(w -1)*SCALE ),( y_map+sprite.y ) * SCALE + y_offset+ (8*(h -1) *SCALE ),pAlpha,SCALE,flip)
+						   if(vaFlip ==1 )then vaFlip = -1 elseif(vaFlip== -1)then vaFlip = 1 end
+						else
+						spr(i[h+w], (x_map+ sprite.x )* SCALE + x_offset + (8*(w -1)*SCALE ),( y_map+sprite.y ) * SCALE + y_offset+ (8*(h -1) *SCALE ),pAlpha,SCALE,flip)
+						end
+					end
 				end
 			end
+			--spr(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha,SCALE)
+
+
+
+			if(sprite.color ~= nil) then
+				-- switchPal(12,12)
+				-- switchPal(4,4)
+				-- switchPal(6,6)
+				--
+				-- if(sprite.color.alpha ~= sprite.pAlpha) then
+				-- 	switchPal(11,11)
+				-- end
+
+			end
+			-- spr(i, (x_map+8*col-8*row )* SCALE + x_offset,(y_map+4*col+4*row) * SCALE + y_offset,pAlpha,SCALE)
+
 		end
-		--spr(i, (x_map+ sprite.x )* SCALE + x_offset,( y_map+sprite.y ) * SCALE + y_offset,pAlpha,SCALE)
 
-
-
-		if(sprite.color ~= nil) then
-			-- switchPal(12,12)
-			-- switchPal(4,4)
-			-- switchPal(6,6)
-			--
-			-- if(sprite.color.alpha ~= sprite.pAlpha) then
-			-- 	switchPal(11,11)
-			-- end
-
-		end
-		-- spr(i, (x_map+8*col-8*row )* SCALE + x_offset,(y_map+4*col+4*row) * SCALE + y_offset,pAlpha,SCALE)
 
 	end
 
